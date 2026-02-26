@@ -1,0 +1,15 @@
+{
+  "name": "civic-risk-copilot",
+  "version": "0.1.0",
+  "description": "AI-powered civic risk awareness agent for Montgomery residents",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.5",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  }
+}

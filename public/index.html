@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Risk Copilot - Montgomery</title>
+    <style>
+      :root {
+        --blue-900: #0f3b66;
+        --blue-700: #1d5f9e;
+        --blue-500: #2b82d9;
+        --blue-100: #eaf4ff;
+        --white: #ffffff;
+        --gray-100: #f4f7fb;
+        --gray-300: #d4deea;
+        --gray-700: #31445b;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: linear-gradient(160deg, var(--blue-100), var(--gray-100));
+        color: var(--gray-700);
+      }
+
+      .app {
+        max-width: 1100px;
+        margin: 24px auto;
+        padding: 0 16px;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--white);
+        border: 1px solid var(--gray-300);
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(15, 59, 102, 0.08);
+      }
+
+      .sidebar {
+        padding: 16px;
+      }
+
+      .title {
+        margin: 0 0 8px;
+        color: var(--blue-900);
+      }
+
+      .weather-item {
+        margin: 8px 0;
+        padding: 10px;
+        background: var(--blue-100);
+        border-radius: 10px;
+      }
+
+      .chat {
+        display: flex;
+        flex-direction: column;
+        min-height: 72vh;
+      }
+
+      .chat-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--gray-300);
+        color: var(--blue-900);
+        font-weight: 600;
+      }
+
+      .messages {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+      }
+
+      .msg {
+        max-width: 78%;
+        margin: 10px 0;
+        padding: 10px 12px;
+        border-radius: 10px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+      }
+
+      .user {
+        margin-left: auto;
+        background: var(--blue-500);
+        color: var(--white);
+      }
+
+      .bot {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-300);
+      }
+
+      .input-wrap {
+        border-top: 1px solid var(--gray-300);
+        display: flex;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      input {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        font-size: 15px;
+      }
+
+      button {
+        background: var(--blue-700);
+        border: none;
+        color: var(--white);
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      button:hover { background: var(--blue-900); }
+
+      @media (max-width: 900px) {
+        .app { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="card sidebar">
+        <h2 class="title">Montgomery Risk Snapshot</h2>
+        <div id="weather-summary">Loading weather...</div>
+      </aside>
+
+      <section class="card chat">
+        <div class="chat-header">Civic Risk Copilot</div>
+        <div id="messages" class="messages">
+          <div class="msg bot">Hi! Ask me about Montgomery weather, alerts, city services, or local safety updates.</div>
+        </div>
+        <form id="chat-form" class="input-wrap">
+          <input id="chat-input" placeholder="Ask about city risks or weather..." required />
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </div>
+
+    <script>
+      const messagesEl = document.getElementById('messages');
+      const formEl = document.getElementById('chat-form');
+      const inputEl = document.getElementById('chat-input');
+      const weatherEl = document.getElementById('weather-summary');
+
+      function addMessage(text, role = 'bot') {
+        const div = document.createElement('div');
+        div.className = `msg ${role}`;
+        div.textContent = text;
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      async function loadWeather() {
+        try {
+          const res = await fetch('/api/weather');
+          const data = await res.json();
+          const c = data.current || {};
+          weatherEl.innerHTML = `
+            <div class="weather-item"><strong>Temp:</strong> ${c.temperature_2m ?? 'N/A'} ${data.current_units?.temperature_2m ?? ''}</div>
+            <div class="weather-item"><strong>Feels like:</strong> ${c.apparent_temperature ?? 'N/A'} ${data.current_units?.apparent_temperature ?? ''}</div>
+            <div class="weather-item"><strong>Humidity:</strong> ${c.relative_humidity_2m ?? 'N/A'} ${data.current_units?.relative_humidity_2m ?? ''}</div>
+            <div class="weather-item"><strong>Wind:</strong> ${c.wind_speed_10m ?? 'N/A'} ${data.current_units?.wind_speed_10m ?? ''}</div>
+          `;
+        } catch (e) {
+          weatherEl.textContent = 'Weather unavailable right now.';
+        }
+      }
+
+      formEl.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const message = inputEl.value.trim();
+        if (!message) return;
+
+        addMessage(message, 'user');
+        inputEl.value = '';
+
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message }),
+          });
+          const data = await res.json();
+          addMessage(data.answer || 'No response available.');
+        } catch (err) {
+          addMessage('Sorry, something went wrong. Please try again.');
+        }
+      });
+
+      loadWeather();
+    </script>
+  </body>
+</html>
