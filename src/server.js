@@ -5,6 +5,7 @@ const { askCopilot } = require('./ai/copilot');
 const { getWeatherData, getCombinedAlerts } = require('./data/weather');
 const { getAirQualityData } = require('./data/air-quality');
 const { getFloodData } = require('./data/flood');
+const { getEarthquakeData } = require('./data/earthquakes');
 const { getIncidentData } = require('./data/incidents');
 const { getLocalNews } = require('./data/news');
 const { getCityServiceUpdates } = require('./data/city-services');
@@ -66,6 +67,16 @@ app.get('/api/air-quality', async (req, res, next) => {
 app.get('/api/flood', async (req, res, next) => {
   try {
     const data = await cache.wrap('flood', () => getFloodData(), DEFAULT_TTL_MS);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+app.get('/api/earthquakes', async (req, res, next) => {
+  try {
+    const data = await cache.wrap('earthquakes', () => getEarthquakeData(), DEFAULT_TTL_MS);
     res.json(data);
   } catch (error) {
     next(error);

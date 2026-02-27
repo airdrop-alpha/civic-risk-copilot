@@ -4,563 +4,109 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Civic Risk Copilot dashboard for Montgomery, Alabama residents." />
-    <meta name="theme-color" content="#0f4c81" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f4c81'/%3E%3Cpath d='M12 36h40L32 12z' fill='%23ffffff'/%3E%3Ccircle cx='32' cy='42' r='6' fill='%23ffd23f'/%3E%3C/svg%3E"
-      type="image/svg+xml"
-    />
     <title>Civic Risk Copilot | Montgomery Dashboard</title>
     <style>
-      :root {
-        --civic-blue-900: #083d66;
-        --civic-blue-700: #0f4c81;
-        --civic-blue-500: #2f7fbf;
-        --civic-blue-200: #d8eaf8;
-        --surface: #ffffff;
-        --ink: #1d2a36;
-        --muted: #5d7185;
-        --line: #d3e0ec;
-        --good: #1e9f51;
-        --moderate: #e1b12c;
-        --high: #e67e22;
-        --severe: #c0392b;
-        --page-bg: radial-gradient(circle at 8% 0%, #e4f2ff 0%, #f5f9fd 40%, #eef5fb 100%);
-      }
-
+      :root { --bg:#f3f7fb; --surface:#fff; --ink:#1b2a36; --muted:#5f7386; --line:#d7e1ea; --blue:#0f4c81; --blue2:#1d70b8; --good:#1f9d57; --moderate:#d3a208; --high:#d96a1c; --severe:#be2d2d; }
       * { box-sizing: border-box; }
+      body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif; background:var(--bg); color:var(--ink);} 
+      .page { max-width:1240px; margin:0 auto; padding:18px 14px 90px; }
+      .header { display:flex; justify-content:space-between; align-items:end; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+      h1 { margin:0; color:#0c3b62; }
+      .subtitle { color:var(--muted); margin:4px 0 0; font-size:.92rem; }
+      .risk-banner { border-radius:14px; color:#fff; padding:14px 16px; margin-bottom:12px; box-shadow:0 10px 24px rgba(15,76,129,.25);} 
+      .risk-top { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
+      .score-pill { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:6px 10px; font-weight:700; }
+      .risk-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px; margin-top:10px; }
+      .risk-factor { background:rgba(255,255,255,.16); border-radius:10px; padding:8px; border:1px solid rgba(255,255,255,.28); }
+      .risk-factor .meta { display:flex; justify-content:space-between; font-size:.8rem; opacity:.95; }
+      .bar { margin-top:6px; width:100%; height:7px; background:rgba(255,255,255,.28); border-radius:99px; overflow:hidden; }
+      .bar>span { display:block; height:100%; background:#fff; }
 
-      body {
-        margin: 0;
-        font-family: 'Segoe UI', 'Avenir Next', 'Helvetica Neue', sans-serif;
-        color: var(--ink);
-        background: var(--page-bg);
-      }
-
-      .page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px 14px 90px;
-      }
-
-      .header {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 10px;
-        align-items: flex-end;
-        margin-bottom: 14px;
-      }
-
-      .header h1 {
-        margin: 0;
-        color: var(--civic-blue-900);
-        letter-spacing: 0.3px;
-      }
-
-      .subtitle {
-        margin: 4px 0 0;
-        color: var(--muted);
-        font-size: 0.92rem;
-      }
-
-      .risk-banner {
-        border-radius: 12px;
-        color: #fff;
-        padding: 14px;
-        margin-bottom: 14px;
-        box-shadow: 0 10px 22px rgba(8, 61, 102, 0.18);
-        animation: slideIn 360ms ease;
-      }
-
-      .risk-banner strong { font-size: 1.05rem; }
-      .risk-banner p { margin: 6px 0 0; opacity: 0.95; }
-
-      .dashboard-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 14px;
-        box-shadow: 0 6px 20px rgba(14, 60, 90, 0.08);
-      }
-
-      .card h2 {
-        margin: 0 0 10px;
-        color: var(--civic-blue-700);
-        font-size: 1.02rem;
-      }
-
-      .kv {
-        margin: 6px 0;
-        font-size: 0.93rem;
-      }
-
-      .kv span { color: var(--muted); }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        border: 1px solid transparent;
-      }
-
-      .badge.good { background: #e8f7ef; color: var(--good); border-color: #b8e5ca; }
-      .badge.moderate { background: #fff7dd; color: #8a6a00; border-color: #f0da8a; }
-      .badge.high { background: #fff0e3; color: #a44f00; border-color: #f0c29b; }
-      .badge.severe { background: #fdecea; color: var(--severe); border-color: #f3b7b0; }
-      .badge.unknown { background: #edf1f5; color: #56697d; border-color: #ced8e1; }
-
-      .alerts-list, .list {
-        display: grid;
-        gap: 8px;
-        max-height: 220px;
-        overflow: auto;
-      }
-
-      .list-item {
-        border: 1px solid var(--line);
-        border-left: 5px solid var(--civic-blue-500);
-        border-radius: 8px;
-        padding: 8px;
-        background: #fbfdff;
-        font-size: 0.88rem;
-      }
-
-      .list-item.high { border-left-color: var(--high); }
-      .list-item.severe { border-left-color: var(--severe); }
-      .list-item.moderate { border-left-color: var(--moderate); }
-      .list-item.low { border-left-color: var(--good); }
-
-      .forecast-strip {
-        display: grid;
-        grid-template-columns: repeat(7, minmax(100px, 1fr));
-        gap: 8px;
-        overflow: auto;
-      }
-
-      .forecast-day {
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 8px;
-        text-align: center;
-        min-width: 95px;
-        background: #f8fcff;
-      }
-
-      .chat-fab {
-        position: fixed;
-        right: 14px;
-        bottom: 14px;
-        border: none;
-        border-radius: 999px;
-        background: var(--civic-blue-700);
-        color: #fff;
-        padding: 12px 14px;
-        font-weight: 600;
-        box-shadow: 0 10px 24px rgba(8, 61, 102, 0.28);
-        cursor: pointer;
-      }
-
-      .chat-panel {
-        position: fixed;
-        right: 14px;
-        bottom: 68px;
-        width: min(390px, calc(100vw - 28px));
-        height: 470px;
-        display: none;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        box-shadow: 0 18px 42px rgba(8, 61, 102, 0.25);
-        overflow: hidden;
-      }
-
-      .chat-panel.open { display: grid; grid-template-rows: auto auto 1fr auto; }
-
-      .chat-head {
-        background: var(--civic-blue-900);
-        color: #fff;
-        padding: 10px 12px;
-        font-weight: 600;
-      }
-
-      .suggested {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        padding: 8px;
-        border-bottom: 1px solid var(--line);
-        background: #f7fbff;
-      }
-
-      .suggested button {
-        border: 1px solid #bdd6eb;
-        background: #fff;
-        border-radius: 999px;
-        padding: 6px 9px;
-        cursor: pointer;
-        font-size: 0.78rem;
-      }
-
-      .messages {
-        padding: 10px;
-        overflow-y: auto;
-        background: linear-gradient(180deg, #f8fbff, #fefefe);
-      }
-
-      .msg {
-        margin: 8px 0;
-        border-radius: 10px;
-        padding: 8px 10px;
-        max-width: 92%;
-        white-space: pre-wrap;
-        font-size: 0.9rem;
-      }
-
-      .msg.user {
-        margin-left: auto;
-        background: var(--civic-blue-700);
-        color: #fff;
-      }
-
-      .msg.bot {
-        background: #fff;
-        border: 1px solid var(--line);
-      }
-
-      .attribution {
-        margin-top: 6px;
-        font-size: 0.74rem;
-        color: var(--muted);
-      }
-
-      .chat-form {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px;
-        padding: 10px;
-        border-top: 1px solid var(--line);
-      }
-
-      .chat-form input {
-        border: 1px solid #b6cde2;
-        border-radius: 8px;
-        padding: 10px;
-      }
-
-      .chat-form button {
-        border: none;
-        border-radius: 8px;
-        background: var(--civic-blue-700);
-        color: #fff;
-        padding: 10px 12px;
-        cursor: pointer;
-      }
-
-      .empty-note {
-        font-size: 0.86rem;
-        color: var(--muted);
-      }
-
-      @media (min-width: 800px) {
-        .dashboard-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .span-2 { grid-column: span 2; }
-      }
-
-      @keyframes slideIn {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
+      .dashboard-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+      .card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; box-shadow:0 4px 14px rgba(17,44,70,.08); }
+      .card h2 { margin:0 0 10px; color:var(--blue); font-size:1.02rem; }
+      .kv { margin:5px 0; font-size:.92rem; }
+      .kv span { color:var(--muted); }
+      .badge { display:inline-flex; align-items:center; border-radius:999px; padding:3px 8px; font-size:.75rem; font-weight:600; border:1px solid transparent; }
+      .badge.low,.good { background:#e8f7ef; color:#0d6f37; border-color:#b5e3ca; }
+      .badge.moderate { background:#fff6db; color:#8f6c00; border-color:#f1da8a; }
+      .badge.high { background:#ffeddf; color:#9f4800; border-color:#f3c39a; }
+      .badge.severe { background:#fdeceb; color:#a22020; border-color:#efb5b5; }
+      .badge.unknown { background:#edf1f5; color:#5b6c7c; border-color:#d2dce6; }
+      .list { display:grid; gap:8px; max-height:230px; overflow:auto; }
+      .item { border:1px solid var(--line); border-left:5px solid var(--blue2); border-radius:8px; padding:8px; background:#fbfdff; font-size:.87rem; }
+      .item.low{border-left-color:var(--good)} .item.moderate{border-left-color:var(--moderate)} .item.high{border-left-color:var(--high)} .item.severe{border-left-color:var(--severe)}
+      .forecast-strip { display:grid; grid-template-columns:repeat(7,minmax(95px,1fr)); gap:8px; overflow:auto; }
+      .forecast-day { border:1px solid var(--line); border-radius:10px; padding:8px; text-align:center; background:#f8fcff; min-width:95px; }
+      .chat-fab { position:fixed; right:14px; bottom:14px; border:none; border-radius:999px; padding:12px 14px; color:#fff; background:var(--blue); font-weight:700; box-shadow:0 10px 24px rgba(8,61,102,.28); cursor:pointer; }
+      .chat-panel { position:fixed; right:14px; bottom:66px; width:min(390px,calc(100vw - 28px)); height:470px; display:none; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 18px 42px rgba(8,61,102,.25); }
+      .chat-panel.open{display:grid;grid-template-rows:auto auto 1fr auto}
+      .chat-head{background:#083d66;color:#fff;padding:10px 12px;font-weight:700}
+      .suggested{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:#f7fbff;border-bottom:1px solid var(--line)}
+      .suggested button{border:1px solid #bdd6eb;background:#fff;border-radius:999px;padding:6px 9px;cursor:pointer;font-size:.78rem}
+      .messages{padding:10px;overflow-y:auto;background:linear-gradient(180deg,#f8fbff,#fefefe)}
+      .msg{margin:8px 0;border-radius:10px;padding:8px 10px;max-width:92%;white-space:pre-wrap;font-size:.9rem}
+      .msg.user{margin-left:auto;background:#0f4c81;color:#fff}.msg.bot{background:#fff;border:1px solid var(--line)}
+      .chat-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;border-top:1px solid var(--line)}
+      .chat-form input{border:1px solid #b6cde2;border-radius:8px;padding:10px}.chat-form button{border:none;border-radius:8px;background:#0f4c81;color:#fff;padding:10px 12px}
+      @media (min-width:900px){ .dashboard-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .span-2{grid-column:span 2;} }
     </style>
   </head>
   <body>
     <div class="page">
-      <header class="header">
-        <div>
-          <h1>Montgomery Civic Risk Dashboard</h1>
-          <p class="subtitle">Live civic risk intelligence for Montgomery, Alabama</p>
-        </div>
-        <div class="subtitle">Last updated: <strong id="last-updated">Loading...</strong></div>
-      </header>
+      <header class="header"><div><h1>Montgomery Civic Risk Dashboard</h1><p class="subtitle">Live civic risk intelligence for Montgomery, Alabama</p></div><div class="subtitle">Last updated: <strong id="last-updated">Loading...</strong></div></header>
 
-      <section id="risk-banner" class="risk-banner">
-        <strong>Overall Risk: Loading...</strong>
-        <p>Combining weather, alerts, air quality, incidents, flood, and city service signals.</p>
-      </section>
+      <section id="risk-banner" class="risk-banner"><div class="risk-top"><strong>Overall Risk: Loading...</strong><span class="score-pill" id="overall-score">Score --</span></div><p id="risk-method">Weighted multi-hazard model loading...</p><div id="risk-breakdown" class="risk-grid"></div></section>
 
       <section class="dashboard-grid">
         <article class="card" id="weather-card"><h2>Current Weather</h2><div>Loading...</div></article>
         <article class="card" id="alerts-card"><h2>Active Alerts</h2><div>Loading...</div></article>
         <article class="card" id="aqi-card"><h2>Air Quality</h2><div>Loading...</div></article>
+        <article class="card" id="quake-card"><h2>Earthquake Activity (7d)</h2><div>Loading...</div></article>
         <article class="card" id="incidents-card"><h2>Community Safety</h2><div>Loading...</div></article>
         <article class="card" id="services-card"><h2>City Services</h2><div>Loading...</div></article>
         <article class="card" id="flood-card"><h2>Flood Watch</h2><div>Loading...</div></article>
-        <article class="card span-2" id="forecast-card">
-          <h2>7-Day Forecast</h2>
-          <div class="forecast-strip" id="forecast-strip"></div>
-        </article>
+        <article class="card span-2" id="forecast-card"><h2>7-Day Forecast</h2><div class="forecast-strip" id="forecast-strip"></div></article>
         <article class="card span-2" id="news-card"><h2>Breaking Local Risk News</h2><div>Loading...</div></article>
       </section>
     </div>
 
     <button class="chat-fab" id="chat-toggle">Open AI Copilot</button>
-
-    <aside class="chat-panel" id="chat-panel" aria-label="AI Copilot chat panel">
-      <div class="chat-head">AI Civic Copilot</div>
-      <div class="suggested" id="suggested-questions"></div>
-      <div class="messages" id="messages">
-        <div class="msg bot">Ask about local risks, flood trends, weather alerts, or service disruptions.</div>
-      </div>
-      <form class="chat-form" id="chat-form">
-        <input id="chat-input" placeholder="What should I do about today's risks?" required />
-        <button type="submit">Send</button>
-      </form>
-    </aside>
+    <aside class="chat-panel" id="chat-panel"><div class="chat-head">AI Civic Copilot</div><div class="suggested" id="suggested-questions"></div><div class="messages" id="messages"><div class="msg bot">Ask about flood, heat, AQI, or emergency prep.</div></div><form class="chat-form" id="chat-form"><input id="chat-input" placeholder="What should I do about today's risks?" required /><button type="submit">Send</button></form></aside>
 
     <script>
-      const state = { dashboard: null };
-      const suggestedQuestions = [
-        'What is the biggest risk in Montgomery today?',
-        'Should I avoid any roads due to flooding?',
-        'Are there severe weather alerts right now?',
-        'How does air quality affect outdoor plans today?',
-      ];
+      const suggestedQuestions=['What is the biggest risk in Montgomery today?','Should I avoid any roads due to flooding?','Are there severe weather alerts right now?','How does air quality affect outdoor plans today?'];
+      const titleCase = (t='') => t.replace(/\b\w/g,m=>m.toUpperCase());
+      const severityClass=(v='')=>{v=v.toLowerCase();if(v.includes('severe'))return'severe';if(v.includes('high')||v.includes('unhealthy'))return'high';if(v.includes('moderate'))return'moderate';if(v.includes('low')||v.includes('good'))return'low';return'unknown';};
+      const riskBannerStyle=(l)=>l==='severe'?'linear-gradient(90deg,#8b1f17,#c0392b)':l==='high'?'linear-gradient(90deg,#b35c16,#e67e22)':l==='moderate'?'linear-gradient(90deg,#a17a00,#e1b12c)':'linear-gradient(90deg,#116b36,#1e9f51)';
+      const createList=(items,fmt)=>!items?.length?'<p class="subtitle">No records right now.</p>':`<div class="list">${items.map(fmt).join('')}</div>`;
 
-      function titleCase(text) {
-        return (text || '').replace(/\b\w/g, (m) => m.toUpperCase());
+      function updateRiskBanner(d){
+        const level=d.overallRisk||'unknown';
+        const rb=d.riskBreakdown||{};
+        const banner=document.getElementById('risk-banner');
+        banner.style.background=riskBannerStyle(level);
+        banner.querySelector('strong').textContent=`Overall Risk Level: ${titleCase(level)}`;
+        document.getElementById('overall-score').textContent=`Score ${d.overallScore ?? '--'} / 100`;
+        document.getElementById('risk-method').textContent=rb.methodology || 'Weighted model';
+        document.getElementById('risk-breakdown').innerHTML=(rb.factors||[]).map(f=>`
+          <div class="risk-factor"><div class="meta"><strong>${f.label}</strong><span>${Math.round(f.score)}</span></div><div class="bar"><span style="width:${Math.min(100,f.score)}%"></span></div><div class="meta"><span>${titleCase(f.level)}</span><span>w ${Math.round(f.weight*100)}%</span></div></div>`).join('');
       }
 
-      function severityClass(level) {
-        const v = (level || '').toLowerCase();
-        if (v.includes('severe')) return 'severe';
-        if (v.includes('high') || v.includes('unhealthy')) return 'high';
-        if (v.includes('moderate')) return 'moderate';
-        if (v.includes('low') || v.includes('good')) return 'low';
-        return 'unknown';
-      }
+      function updateWeatherCard(w){const c=w.current||{};document.getElementById('weather-card').innerHTML=`<h2>Current Weather</h2><p class="kv"><span>Condition:</span> ${c.weather_description||'Unknown'}</p><p class="kv"><span>Temperature:</span> ${c.temperature_2m ?? 'N/A'} ${w.current_units?.temperature_2m||''}</p><p class="kv"><span>Wind:</span> ${c.wind_speed_10m ?? 'N/A'} ${w.current_units?.wind_speed_10m||''}</p><p class="kv"><span>Humidity:</span> ${c.relative_humidity_2m ?? 'N/A'} ${w.current_units?.relative_humidity_2m||''}</p>`;}
+      function updateAlertsCard(a){const rows=(a.alerts||[]).slice(0,8);document.getElementById('alerts-card').innerHTML=`<h2>Active Alerts</h2>${createList(rows,r=>`<div class="item ${severityClass(r.severity)}"><strong>${r.event||r.type||'Alert'}</strong><div>${r.headline||r.detail||'No details'}</div></div>`)}`;}
+      function updateAqiCard(a){const cls=severityClass(a.classification?.level);document.getElementById('aqi-card').innerHTML=`<h2>Air Quality</h2><p class="kv"><span>US AQI:</span> ${a.current?.us_aqi ?? 'N/A'} <span class="badge ${cls}">${a.classification?.label||'Unknown'}</span></p><p class="kv"><span>PM2.5:</span> ${a.current?.pm2_5 ?? 'N/A'} ${a.current_units?.pm2_5||''}</p><p class="kv"><span>Ozone:</span> ${a.current?.ozone ?? 'N/A'} ${a.current_units?.ozone||''}</p>`;}
+      function updateQuakeCard(q){const rows=(q.events||[]).slice(0,6);document.getElementById('quake-card').innerHTML=`<h2>Earthquake Activity (7d)</h2><p class="kv"><span>Events:</span> ${q.total ?? 0}</p><p class="kv"><span>Max magnitude:</span> ${q.maxMagnitude ?? 0} <span class="badge ${severityClass(q.severity)}">${titleCase(q.severity||'low')}</span></p>${createList(rows,e=>`<div class="item ${severityClass(e.severity)}"><strong>M${e.magnitude ?? 'N/A'} - ${e.place||'Unknown place'}</strong><div>${e.time?new Date(e.time).toLocaleString():'Unknown time'}</div></div>`)}`;}
+      function updateIncidentsCard(i){const rows=(i.incidents||[]).slice(0,6);document.getElementById('incidents-card').innerHTML=`<h2>Community Safety</h2>${createList(rows,r=>`<div class="item ${severityClass(r.severity)}"><strong>${r.type}</strong><div>${r.location||'Montgomery area'}${r.time?` | ${new Date(r.time).toLocaleString()}`:''}</div></div>`)}`;}
+      function updateCityServicesCard(s){const rows=(s.announcements||[]).slice(0,6);document.getElementById('services-card').innerHTML=`<h2>City Services</h2><p class="subtitle">${s.note||''}</p>${createList(rows,a=>`<div class="item low"><strong>${a.title}</strong><div>${a.link?`<a href="${a.link}" target="_blank" rel="noopener noreferrer">View notice</a>`:''}</div></div>`)}`;}
+      function updateFloodCard(f){const rows=(f.gauges||[]).slice(0,6);document.getElementById('flood-card').innerHTML=`<h2>Flood Watch</h2><p class="kv"><span>Highest Gauge Risk:</span> <span class="badge ${severityClass(f.highestRisk)}">${titleCase(f.highestRisk||'unknown')}</span></p>${createList(rows,g=>`<div class="item ${severityClass(g.riskLevel)}"><strong>${g.siteName||g.siteCode}</strong><div>Stage: ${g.stageFeet ?? 'N/A'} ${g.stageUnit||'ft'} | Discharge: ${g.dischargeCfs ?? 'N/A'} ${g.dischargeUnit||'cfs'}</div></div>`)}`;}
+      function updateForecast(w){const d=w.daily?.time||[];const mx=w.daily?.temperature_2m_max||[];const mn=w.daily?.temperature_2m_min||[];const p=w.daily?.precipitation_probability_max||[];document.getElementById('forecast-strip').innerHTML=d.map((date,i)=>`<div class="forecast-day"><strong>${new Date(date).toLocaleDateString([], { weekday: 'short' })}</strong><div>${mx[i]??'-'} / ${mn[i]??'-'} ${w.daily_units?.temperature_2m_max||''}</div><div>${p[i]??'-'}${w.daily_units?.precipitation_probability_max||'%'}</div></div>`).join('');}
+      function updateNewsCard(n){const rows=(n.stories||[]).slice(0,8);document.getElementById('news-card').innerHTML=`<h2>Breaking Local Risk News</h2>${createList(rows,s=>`<div class="item moderate"><strong>${s.title}</strong><div>${s.source} | <a href="${s.link}" target="_blank" rel="noopener noreferrer">Open story</a></div></div>`)}`;}
 
-      function riskBannerStyle(level) {
-        if (level === 'severe') return 'linear-gradient(90deg, #8b1f17, #c0392b)';
-        if (level === 'high') return 'linear-gradient(90deg, #b35c16, #e67e22)';
-        if (level === 'moderate') return 'linear-gradient(90deg, #a17a00, #e1b12c)';
-        return 'linear-gradient(90deg, #116b36, #1e9f51)';
-      }
-
-      function createListItems(items, formatter) {
-        if (!items || !items.length) return '<p class="empty-note">No records available right now.</p>';
-        return `<div class="list">${items.map(formatter).join('')}</div>`;
-      }
-
-      function updateWeatherCard(weather) {
-        const c = weather.current || {};
-        document.getElementById('weather-card').innerHTML = `
-          <h2>Current Weather</h2>
-          <p class="kv"><span>Condition:</span> ${c.weather_description || 'Unknown'}</p>
-          <p class="kv"><span>Temperature:</span> ${c.temperature_2m ?? 'N/A'} ${weather.current_units?.temperature_2m || ''}</p>
-          <p class="kv"><span>Wind:</span> ${c.wind_speed_10m ?? 'N/A'} ${weather.current_units?.wind_speed_10m || ''}</p>
-          <p class="kv"><span>Humidity:</span> ${c.relative_humidity_2m ?? 'N/A'} ${weather.current_units?.relative_humidity_2m || ''}</p>
-        `;
-      }
-
-      function updateAlertsCard(alerts) {
-        const rows = (alerts.alerts || []).slice(0, 8);
-        const html = createListItems(rows, (a) => `
-          <div class="list-item ${severityClass(a.severity)}">
-            <strong>${a.event || a.type || 'Alert'}</strong>
-            <div>${a.headline || a.detail || 'No details available.'}</div>
-          </div>
-        `);
-        document.getElementById('alerts-card').innerHTML = `<h2>Active Alerts</h2>${html}`;
-      }
-
-      function updateAqiCard(airQuality) {
-        const cls = severityClass(airQuality.classification?.level);
-        const aqi = airQuality.current?.us_aqi;
-        document.getElementById('aqi-card').innerHTML = `
-          <h2>Air Quality</h2>
-          <p class="kv"><span>US AQI:</span> ${aqi ?? 'N/A'} <span class="badge ${cls}">${airQuality.classification?.label || 'Unknown'}</span></p>
-          <p class="kv"><span>PM2.5:</span> ${airQuality.current?.pm2_5 ?? 'N/A'} ${airQuality.current_units?.pm2_5 || ''}</p>
-          <p class="kv"><span>Ozone:</span> ${airQuality.current?.ozone ?? 'N/A'} ${airQuality.current_units?.ozone || ''}</p>
-        `;
-      }
-
-      function updateIncidentsCard(incidents) {
-        const rows = (incidents.incidents || []).slice(0, 6);
-        const html = createListItems(rows, (i) => `
-          <div class="list-item ${severityClass(i.severity)}">
-            <strong>${i.type}</strong>
-            <div>${i.location || 'Montgomery area'}${i.time ? ` | ${new Date(i.time).toLocaleString()}` : ''}</div>
-          </div>
-        `);
-        document.getElementById('incidents-card').innerHTML = `<h2>Community Safety</h2>${html}`;
-      }
-
-      function updateCityServicesCard(cityServices) {
-        const rows = (cityServices.announcements || []).slice(0, 6);
-        const html = createListItems(rows, (a) => `
-          <div class="list-item low">
-            <strong>${a.title}</strong>
-            <div>${a.link ? `<a href="${a.link}" target="_blank" rel="noopener noreferrer">View notice</a>` : ''}</div>
-          </div>
-        `);
-        document.getElementById('services-card').innerHTML = `
-          <h2>City Services</h2>
-          <p class="empty-note">${cityServices.note || ''}</p>
-          ${html}
-        `;
-      }
-
-      function updateFloodCard(flood) {
-        const rows = (flood.gauges || []).slice(0, 6);
-        const html = createListItems(rows, (g) => `
-          <div class="list-item ${severityClass(g.riskLevel)}">
-            <strong>${g.siteName || g.siteCode}</strong>
-            <div>Stage: ${g.stageFeet ?? 'N/A'} ${g.stageUnit || 'ft'} | Discharge: ${g.dischargeCfs ?? 'N/A'} ${g.dischargeUnit || 'cfs'}</div>
-          </div>
-        `);
-        document.getElementById('flood-card').innerHTML = `
-          <h2>Flood Watch</h2>
-          <p class="kv"><span>Highest Gauge Risk:</span> <span class="badge ${severityClass(flood.highestRisk)}">${titleCase(flood.highestRisk || 'unknown')}</span></p>
-          ${html}
-        `;
-      }
-
-      function updateForecast(weather) {
-        const dates = weather.daily?.time || [];
-        const tMax = weather.daily?.temperature_2m_max || [];
-        const tMin = weather.daily?.temperature_2m_min || [];
-        const precip = weather.daily?.precipitation_probability_max || [];
-
-        const html = dates.map((date, i) => `
-          <div class="forecast-day">
-            <strong>${new Date(date).toLocaleDateString([], { weekday: 'short' })}</strong>
-            <div>${tMax[i] ?? '-'} / ${tMin[i] ?? '-'} ${weather.daily_units?.temperature_2m_max || ''}</div>
-            <div>${precip[i] ?? '-'}${weather.daily_units?.precipitation_probability_max || '%'}</div>
-          </div>
-        `).join('');
-
-        document.getElementById('forecast-strip').innerHTML = html;
-      }
-
-      function updateNewsCard(news) {
-        const rows = (news.stories || []).slice(0, 8);
-        const html = createListItems(rows, (s) => `
-          <div class="list-item moderate">
-            <strong>${s.title}</strong>
-            <div>${s.source} | <a href="${s.link}" target="_blank" rel="noopener noreferrer">Open story</a></div>
-          </div>
-        `);
-        document.getElementById('news-card').innerHTML = `<h2>Breaking Local Risk News</h2>${html}`;
-      }
-
-      function updateRiskBanner(level) {
-        const el = document.getElementById('risk-banner');
-        el.style.background = riskBannerStyle(level);
-        el.innerHTML = `
-          <strong>Overall Risk Level: ${titleCase(level || 'unknown')}</strong>
-          <p>Based on weather alerts, air quality, incidents, city updates, and flood gauges.</p>
-        `;
-      }
-
-      function addMessage(text, role = 'bot', sources = []) {
-        const messagesEl = document.getElementById('messages');
-        const wrapper = document.createElement('div');
-        wrapper.className = `msg ${role}`;
-        wrapper.textContent = text;
-
-        if (role === 'bot' && sources.length) {
-          const src = document.createElement('div');
-          src.className = 'attribution';
-          src.textContent = `Sources: ${sources.join(', ')}`;
-          wrapper.appendChild(src);
-        }
-
-        messagesEl.appendChild(wrapper);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-      }
-
-      async function loadDashboard() {
-        try {
-          const res = await fetch('/api/dashboard');
-          const data = await res.json();
-          state.dashboard = data;
-
-          document.getElementById('last-updated').textContent = new Date(data.updatedAt).toLocaleString();
-          updateRiskBanner(data.overallRisk);
-          updateWeatherCard(data.weather || {});
-          updateAlertsCard(data.alerts || {});
-          updateAqiCard(data.airQuality || {});
-          updateIncidentsCard(data.incidents || {});
-          updateCityServicesCard(data.cityServices || {});
-          updateFloodCard(data.flood || {});
-          updateForecast(data.weather || {});
-          updateNewsCard(data.news || {});
-        } catch (error) {
-          document.getElementById('last-updated').textContent = 'Unavailable';
-          addMessage('Dashboard data failed to load. Some services may be temporarily unavailable.', 'bot');
-        }
-      }
-
-      function setupChat() {
-        const panel = document.getElementById('chat-panel');
-        const toggle = document.getElementById('chat-toggle');
-        const form = document.getElementById('chat-form');
-        const input = document.getElementById('chat-input');
-        const suggested = document.getElementById('suggested-questions');
-
-        toggle.addEventListener('click', () => {
-          panel.classList.toggle('open');
-          toggle.textContent = panel.classList.contains('open') ? 'Close AI Copilot' : 'Open AI Copilot';
-        });
-
-        suggested.innerHTML = suggestedQuestions
-          .map((q) => `<button type="button" data-q="${q.replace(/"/g, '&quot;')}">${q}</button>`)
-          .join('');
-
-        suggested.addEventListener('click', (e) => {
-          const btn = e.target.closest('button[data-q]');
-          if (!btn) return;
-          input.value = btn.dataset.q;
-          input.focus();
-        });
-
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const message = input.value.trim();
-          if (!message) return;
-
-          addMessage(message, 'user');
-          input.value = '';
-
-          try {
-            const res = await fetch('/api/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message }),
-            });
-            const data = await res.json();
-            addMessage(data.answer || 'No response available.', 'bot', data.sources || []);
-          } catch (err) {
-            addMessage('Chat request failed. Please try again shortly.', 'bot');
-          }
-        });
-      }
-
-      setupChat();
-      loadDashboard();
-      setInterval(loadDashboard, 5 * 60 * 1000);
+      function addMessage(text, role='bot', sources=[]){const m=document.getElementById('messages');const w=document.createElement('div');w.className=`msg ${role}`;w.textContent=text;if(role==='bot'&&sources.length){const s=document.createElement('div');s.className='subtitle';s.textContent=`Sources: ${sources.join(', ')}`;w.appendChild(s);}m.appendChild(w);m.scrollTop=m.scrollHeight;}
+      async function loadDashboard(){try{const res=await fetch('/api/dashboard');const d=await res.json();document.getElementById('last-updated').textContent=new Date(d.updatedAt).toLocaleString();updateRiskBanner(d);updateWeatherCard(d.weather||{});updateAlertsCard(d.alerts||{});updateAqiCard(d.airQuality||{});updateQuakeCard(d.earthquakes||{});updateIncidentsCard(d.incidents||{});updateCityServicesCard(d.cityServices||{});updateFloodCard(d.flood||{});updateForecast(d.weather||{});updateNewsCard(d.news||{});}catch{document.getElementById('last-updated').textContent='Unavailable';addMessage('Dashboard data failed to load. Some sources may be unavailable.','bot');}}
+      function setupChat(){const p=document.getElementById('chat-panel');const t=document.getElementById('chat-toggle');const f=document.getElementById('chat-form');const i=document.getElementById('chat-input');const sq=document.getElementById('suggested-questions');t.addEventListener('click',()=>{p.classList.toggle('open');t.textContent=p.classList.contains('open')?'Close AI Copilot':'Open AI Copilot';});sq.innerHTML=suggestedQuestions.map(q=>`<button type="button" data-q="${q.replace(/"/g,'&quot;')}">${q}</button>`).join('');sq.addEventListener('click',e=>{const b=e.target.closest('button[data-q]');if(!b)return;i.value=b.dataset.q;i.focus();});f.addEventListener('submit',async e=>{e.preventDefault();const message=i.value.trim();if(!message)return;addMessage(message,'user');i.value='';try{const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});const data=await res.json();addMessage(data.answer||'No response available.','bot',data.sources||[]);}catch{addMessage('Chat request failed. Please try again shortly.','bot');}});}
+      setupChat(); loadDashboard(); setInterval(loadDashboard,5*60*1000);
     </script>
   </body>
 </html>

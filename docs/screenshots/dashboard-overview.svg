@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#f3f7fb"/>
+  <rect x="40" y="30" width="1200" height="100" rx="16" fill="#0f4c81"/>
+  <text x="70" y="75" fill="#fff" font-size="34" font-family="Arial">Civic Risk Copilot - Dashboard Demo</text>
+  <text x="70" y="105" fill="#d7e9f7" font-size="20" font-family="Arial">Risk Score, hazard factors, weather, alerts, AQI, flood, earthquakes</text>
+  <rect x="40" y="150" width="580" height="250" rx="14" fill="#fff" stroke="#d7e1ea"/>
+  <rect x="660" y="150" width="580" height="250" rx="14" fill="#fff" stroke="#d7e1ea"/>
+  <rect x="40" y="430" width="1200" height="240" rx="14" fill="#fff" stroke="#d7e1ea"/>
+  <text x="70" y="205" fill="#0f4c81" font-size="24" font-family="Arial">Risk Breakdown</text>
+  <text x="690" y="205" fill="#0f4c81" font-size="24" font-family="Arial">Earthquake + Flood + AQI Cards</text>
+  <text x="70" y="480" fill="#0f4c81" font-size="24" font-family="Arial">Forecast + News + AI Copilot (floating panel)</text>
+</svg>
