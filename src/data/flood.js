@@ -16,18 +16,19 @@ function classifyGaugeRisk(stageFeet) {
 }
 
 async function getFloodData() {
-  const url = 'https://waterservices.usgs.gov/nwis/iv/';
-  const params = {
-    format: 'json',
-    bBox: MONTGOMERY_BBOX,
-    parameterCd: '00065,00060',
-    siteType: 'ST',
-    siteStatus: 'active',
-  };
+  try {
+    const url = 'https://waterservices.usgs.gov/nwis/iv/';
+    const params = {
+      format: 'json',
+      bBox: MONTGOMERY_BBOX,
+      parameterCd: '00065,00060',
+      siteType: 'ST',
+      siteStatus: 'active',
+    };
 
-  const { data } = await axios.get(url, { params, timeout: 15000 });
-  const series = data?.value?.timeSeries || [];
-  const sites = new Map();
+    const { data } = await axios.get(url, { params, timeout: 15000 });
+    const series = data?.value?.timeSeries || [];
+    const sites = new Map();
 
   for (const item of series) {
     const source = item.sourceInfo || {};
@@ -64,23 +65,34 @@ async function getFloodData() {
     sites.set(siteCode, existing);
   }
 
-  const gauges = Array.from(sites.values()).map((g) => ({
-    ...g,
-    riskLevel: classifyGaugeRisk(g.stageFeet),
-  }));
+    const gauges = Array.from(sites.values()).map((g) => ({
+      ...g,
+      riskLevel: classifyGaugeRisk(g.stageFeet),
+    }));
 
-  const highestRisk = gauges.reduce((max, g) => {
-    const rank = { unknown: 0, low: 1, moderate: 2, high: 3, severe: 4 };
-    return (rank[g.riskLevel] > rank[max]) ? g.riskLevel : max;
-  }, 'unknown');
+    const highestRisk = gauges.reduce((max, g) => {
+      const rank = { unknown: 0, low: 1, moderate: 2, high: 3, severe: 4 };
+      return (rank[g.riskLevel] > rank[max]) ? g.riskLevel : max;
+    }, 'unknown');
 
-  return {
-    source: 'USGS Water Services',
-    query: `bBox=${MONTGOMERY_BBOX}`,
-    gauges,
-    highestRisk,
-    updatedAt: new Date().toISOString(),
-  };
+    return {
+      source: 'USGS Water Services',
+      query: `bBox=${MONTGOMERY_BBOX}`,
+      gauges,
+      highestRisk,
+      updatedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    return {
+      source: 'USGS Water Services',
+      query: `bBox=${MONTGOMERY_BBOX}`,
+      gauges: [],
+      highestRisk: 'unknown',
+      unavailable: true,
+      error: error.message,
+      updatedAt: new Date().toISOString(),
+    };
+  }
 }
 
 module.exports = {

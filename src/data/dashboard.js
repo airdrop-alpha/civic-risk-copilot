@@ -7,6 +7,90 @@ const { getLocalNews } = require('./news');
 const { getEarthquakeData } = require('./earthquakes');
 
 const RISK_RANK = { low: 1, moderate: 2, high: 3, severe: 4, unknown: 0 };
+const sourceFallbackCache = new Map();
+
+function summarizeSourceHealth(sourceStatus = {}) {
+  const counts = { live: 0, stale: 0, unavailable: 0, demo: 0 };
+  for (const meta of Object.values(sourceStatus)) {
+    const key = meta?.status || 'unavailable';
+    counts[key] = (counts[key] || 0) + 1;
+  }
+
+  const total = Object.keys(sourceStatus).length || 1;
+  const confidenceScore = Math.max(20, Math.round(((counts.live * 1) + (counts.stale * 0.55) + (counts.demo * 0.7)) / total * 100));
+
+  return {
+    counts,
+    total,
+    confidenceScore,
+    summary: counts.unavailable > 0
+      ? `${counts.live}/${total} live, ${counts.unavailable} unavailable`
+      : `${counts.live}/${total} sources live`,
+  };
+}
+
+function buildHeroStats({ alerts, airQuality, flood, incidents, sourceHealth }) {
+  return [
+    { label: 'Active Alerts', value: (alerts?.alerts || []).length, tone: (alerts?.alerts || []).length > 0 ? 'high' : 'low' },
+    { label: 'Air Quality', value: airQuality?.current?.us_aqi ?? 'N/A', tone: scoreToLevel(levelToScore(airQuality?.classification?.level)) },
+    { label: 'Flood Risk', value: String(flood?.highestRisk || 'unknown').toUpperCase(), tone: flood?.highestRisk || 'unknown' },
+    { label: 'Data Confidence', value: `${sourceHealth.confidenceScore}%`, tone: sourceHealth.confidenceScore >= 75 ? 'low' : sourceHealth.confidenceScore >= 50 ? 'moderate' : 'high' },
+    { label: 'Incidents', value: incidents?.total ?? 0, tone: (incidents?.summary?.high || 0) > 0 ? 'high' : 'moderate' },
+  ];
+}
+
+function buildActionBrief({ overallRisk, riskBreakdown, alerts, airQuality, flood, weather, incidents, cityServices, sourceHealth }) {
+  const actions = [];
+  const watchList = [];
+  const topFactors = (riskBreakdown?.factors || []).slice().sort((a, b) => b.score - a.score).slice(0, 3);
+
+  if ((alerts?.alerts || []).length > 0) {
+    actions.push('Review official alerts and avoid areas named in active warnings before travel or outdoor plans.');
+    watchList.push((alerts.alerts[0].event || alerts.alerts[0].type || 'Active alert').trim());
+  }
+
+  if (String(flood?.highestRisk || '').match(/moderate|high|severe/i)) {
+    actions.push('Avoid low-lying roads and monitor river gauges as storms move through Montgomery.');
+    if ((flood?.gauges || []).length) {
+      watchList.push(`${flood.gauges[0].siteName || 'Top gauge'} at ${flood.gauges[0].stageFeet ?? '--'} ${flood.gauges[0].stageUnit || 'ft'}`);
+    }
+  }
+
+  const apparentTemp = Number(weather?.current?.apparent_temperature || weather?.current?.temperature_2m || 0);
+  if (apparentTemp >= 34) {
+    actions.push('Shift strenuous outdoor work earlier or later and keep hydration / cooling resources ready.');
+    watchList.push(`Heat stress at ${apparentTemp}°C apparent temperature`);
+  }
+
+  if (Number(airQuality?.current?.us_aqi || 0) >= 100) {
+    actions.push('Reduce prolonged outdoor exertion for sensitive groups while AQI remains elevated.');
+    watchList.push(`AQI ${airQuality.current.us_aqi}`);
+  }
+
+  if ((incidents?.summary?.high || 0) > 0) {
+    actions.push('Stage communications around higher-activity safety zones and recommend well-lit routes after dark.');
+  }
+
+  if ((cityServices?.announcements || []).length > 0) {
+    watchList.push(cityServices.announcements[0].title);
+  }
+
+  if (!actions.length) {
+    actions.push('Maintain routine monitoring; no single signal currently dominates the civic risk picture.');
+  }
+
+  return {
+    headline: overallRisk === 'severe'
+      ? 'Conditions merit active response posture.'
+      : overallRisk === 'high'
+        ? 'Multiple signals warrant extra caution today.'
+        : 'City conditions are stable, but stay situationally aware.',
+    topFactors: topFactors.map((factor) => factor.label),
+    actions: actions.slice(0, 4),
+    watchList: watchList.slice(0, 4),
+    sourceConfidence: sourceHealth.confidenceScore,
+  };
+}
 
 function scoreToLevel(score) {
   if (score >= 75) return 'severe';
@@ -107,25 +191,63 @@ function calculateRiskBreakdown({ alerts, airQuality, flood, weather, earthquake
   };
 }
 
+function buildRiskTrend({ weather, alerts, overallScore }) {
+  const days = weather?.daily?.time || [];
+  const highs = weather?.daily?.temperature_2m_max || [];
+  const rainChance = weather?.daily?.precipitation_probability_max || [];
+  const alertRisk = Math.min(20, (alerts?.alerts || []).length * 4);
+
+  return days.slice(0, 7).map((day, idx) => {
+    const high = Number(highs[idx] || 0);
+    const rain = Number(rainChance[idx] || 0);
+    const heatRisk = high >= 38 ? 18 : high >= 34 ? 12 : high >= 30 ? 8 : 2;
+    const rainRisk = rain >= 80 ? 14 : rain >= 60 ? 10 : rain >= 40 ? 6 : 2;
+    const score = Math.max(5, Math.min(100, Math.round((overallScore * 0.6) + heatRisk + rainRisk + alertRisk)));
+
+    return {
+      date: day,
+      score,
+      level: scoreToLevel(score),
+    };
+  });
+}
+
 async function getDashboardData() {
   const tasks = {
-    weather: getWeatherData(),
-    alerts: getCombinedAlerts(),
-    airQuality: getAirQualityData(),
-    flood: getFloodData(),
-    incidents: getIncidentData(),
-    cityServices: getCityServiceUpdates(),
-    news: getLocalNews(),
-    earthquakes: getEarthquakeData(),
+    weather: getWeatherData,
+    alerts: getCombinedAlerts,
+    airQuality: getAirQualityData,
+    flood: getFloodData,
+    incidents: getIncidentData,
+    cityServices: getCityServiceUpdates,
+    news: getLocalNews,
+    earthquakes: getEarthquakeData,
   };
 
-  const entries = await Promise.allSettled(Object.values(tasks));
+  const entries = await Promise.allSettled(Object.values(tasks).map((producer) => producer()));
   const keys = Object.keys(tasks);
+  const sourceStatus = {};
 
   const safe = Object.fromEntries(entries.map((result, idx) => {
     const key = keys[idx];
-    if (result.status === 'fulfilled') return [key, result.value];
-    return [key, { unavailable: true, error: result.reason?.message || 'source unavailable', updatedAt: new Date().toISOString() }];
+    const fulfilled = result.status === 'fulfilled';
+    const value = fulfilled ? result.value : null;
+    const message = fulfilled ? value?.error : result.reason?.message;
+
+    if (fulfilled && !value?.unavailable) {
+      sourceFallbackCache.set(key, value);
+      sourceStatus[key] = { status: 'live', message: 'live data' };
+      return [key, value];
+    }
+
+    const stale = sourceFallbackCache.get(key);
+    if (stale) {
+      sourceStatus[key] = { status: 'stale', message: message || 'using last successful snapshot' };
+      return [key, { ...stale, stale: true, fallbackReason: sourceStatus[key].message }];
+    }
+
+    sourceStatus[key] = { status: 'unavailable', message: message || 'source unavailable' };
+    return [key, { ...(value || {}), unavailable: true, error: sourceStatus[key].message, updatedAt: value?.updatedAt || new Date().toISOString() }];
   }));
 
   const risk = calculateRiskBreakdown({
@@ -136,6 +258,23 @@ async function getDashboardData() {
     earthquakes: safe.earthquakes,
     incidents: safe.incidents,
   });
+  const riskTrend = buildRiskTrend({
+    weather: safe.weather,
+    alerts: safe.alerts,
+    overallScore: risk.overallScore,
+  });
+  const sourceHealth = summarizeSourceHealth(sourceStatus);
+  const briefing = buildActionBrief({
+    overallRisk: risk.overallRisk,
+    riskBreakdown: risk,
+    alerts: safe.alerts,
+    airQuality: safe.airQuality,
+    flood: safe.flood,
+    weather: safe.weather,
+    incidents: safe.incidents,
+    cityServices: safe.cityServices,
+    sourceHealth,
+  });
 
   return {
     city: 'Montgomery, AL',
@@ -143,6 +282,7 @@ async function getDashboardData() {
     overallRisk: risk.overallRisk,
     overallScore: risk.overallScore,
     riskBreakdown: risk,
+    riskTrend,
     weather: safe.weather,
     alerts: safe.alerts,
     airQuality: safe.airQuality,
@@ -151,6 +291,10 @@ async function getDashboardData() {
     incidents: safe.incidents,
     cityServices: safe.cityServices,
     news: safe.news,
+    sourceStatus,
+    sourceHealth,
+    heroStats: buildHeroStats({ alerts: safe.alerts, airQuality: safe.airQuality, flood: safe.flood, incidents: safe.incidents, sourceHealth }),
+    briefing,
     sources: [
       'Open-Meteo Weather API',
       'NWS/NOAA Alerts API',

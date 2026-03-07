@@ -40,35 +40,54 @@ function getWeatherDescription(code) {
 }
 
 async function getWeatherData() {
-  const url = 'https://api.open-meteo.com/v1/forecast';
-  const params = {
-    latitude: LAT,
-    longitude: LON,
-    timezone: TZ,
-    current: 'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code',
-    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max',
-    forecast_days: 7,
-  };
-
-  const { data } = await axios.get(url, { params, timeout: 15000 });
-
-  return {
-    source: 'Open-Meteo',
-    location: {
-      name: 'Montgomery, AL',
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast';
+    const params = {
       latitude: LAT,
       longitude: LON,
-      timezone: data.timezone,
-    },
-    current: {
-      ...data.current,
-      weather_description: getWeatherDescription(data.current?.weather_code),
-    },
-    daily: data.daily,
-    daily_units: data.daily_units,
-    current_units: data.current_units,
-    updatedAt: new Date().toISOString(),
-  };
+      timezone: TZ,
+      current: 'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code',
+      daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max',
+      forecast_days: 7,
+    };
+
+    const { data } = await axios.get(url, { params, timeout: 15000 });
+
+    return {
+      source: 'Open-Meteo',
+      location: {
+        name: 'Montgomery, AL',
+        latitude: LAT,
+        longitude: LON,
+        timezone: data.timezone,
+      },
+      current: {
+        ...data.current,
+        weather_description: getWeatherDescription(data.current?.weather_code),
+      },
+      daily: data.daily,
+      daily_units: data.daily_units,
+      current_units: data.current_units,
+      updatedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    return {
+      source: 'Open-Meteo',
+      location: {
+        name: 'Montgomery, AL',
+        latitude: LAT,
+        longitude: LON,
+        timezone: TZ,
+      },
+      current: {},
+      daily: { time: [], temperature_2m_max: [], temperature_2m_min: [], precipitation_probability_max: [], wind_speed_10m_max: [] },
+      daily_units: {},
+      current_units: {},
+      unavailable: true,
+      error: error.message,
+      updatedAt: new Date().toISOString(),
+    };
+  }
 }
 
 function buildForecastAlerts(weather) {
@@ -122,49 +141,61 @@ function mapNwsSeverity(severity = '') {
 }
 
 async function getNwsAlerts() {
-  const url = 'https://api.weather.gov/alerts/active';
-  const params = { area: 'AL' };
+  try {
+    const url = 'https://api.weather.gov/alerts/active';
+    const params = { area: 'AL' };
 
-  const { data } = await axios.get(url, {
-    params,
-    timeout: 15000,
-    headers: {
-      Accept: 'application/geo+json',
-      'User-Agent': 'CivicRiskCopilot/1.0 (hackathon project)',
-    },
-  });
+    const { data } = await axios.get(url, {
+      params,
+      timeout: 15000,
+      headers: {
+        Accept: 'application/geo+json',
+        'User-Agent': 'CivicRiskCopilot/1.0 (hackathon project)',
+      },
+    });
 
-  const features = data.features || [];
+    const features = data.features || [];
 
-  const alerts = features.map((item) => {
-    const p = item.properties || {};
-    const areaDesc = p.areaDesc || '';
-    const relevant = /montgomery/i.test(areaDesc);
+    const alerts = features.map((item) => {
+      const p = item.properties || {};
+      const areaDesc = p.areaDesc || '';
+      const relevant = /montgomery/i.test(areaDesc);
+
+      return {
+        id: p.id || item.id,
+        source: 'NWS/NOAA',
+        event: p.event,
+        headline: p.headline,
+        severity: mapNwsSeverity(p.severity),
+        urgency: p.urgency,
+        certainty: p.certainty,
+        areas: areaDesc,
+        effective: p.effective,
+        ends: p.ends,
+        instruction: p.instruction,
+        description: p.description,
+        relevantToMontgomery: relevant,
+      };
+    });
 
     return {
-      id: p.id || item.id,
-      source: 'NWS/NOAA',
-      event: p.event,
-      headline: p.headline,
-      severity: mapNwsSeverity(p.severity),
-      urgency: p.urgency,
-      certainty: p.certainty,
-      areas: areaDesc,
-      effective: p.effective,
-      ends: p.ends,
-      instruction: p.instruction,
-      description: p.description,
-      relevantToMontgomery: relevant,
+      source: 'https://api.weather.gov/alerts/active?area=AL',
+      total: alerts.length,
+      montgomeryRelevant: alerts.filter((a) => a.relevantToMontgomery).length,
+      alerts,
+      updatedAt: new Date().toISOString(),
     };
-  });
-
-  return {
-    source: 'https://api.weather.gov/alerts/active?area=AL',
-    total: alerts.length,
-    montgomeryRelevant: alerts.filter((a) => a.relevantToMontgomery).length,
-    alerts,
-    updatedAt: new Date().toISOString(),
-  };
+  } catch (error) {
+    return {
+      source: 'https://api.weather.gov/alerts/active?area=AL',
+      total: 0,
+      montgomeryRelevant: 0,
+      alerts: [],
+      unavailable: true,
+      error: error.message,
+      updatedAt: new Date().toISOString(),
+    };
+  }
 }
 
 async function getCombinedAlerts() {
@@ -181,6 +212,8 @@ async function getCombinedAlerts() {
       nws: nws.total,
       forecast: forecastAlerts.length,
     },
+    unavailable: Boolean(weather.unavailable && nws.unavailable),
+    error: nws.error || weather.error || null,
     updatedAt: new Date().toISOString(),
   };
 }

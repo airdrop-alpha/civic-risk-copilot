@@ -14,29 +14,44 @@ function classifyAqi(aqi) {
 }
 
 async function getAirQualityData() {
-  const url = 'https://air-quality-api.open-meteo.com/v1/air-quality';
-  const params = {
-    latitude: LAT,
-    longitude: LON,
-    timezone: TZ,
-    current: 'us_aqi,pm2_5,pm10,ozone,uv_index',
-    daily: 'us_aqi_max,us_aqi_min',
-    forecast_days: 7,
-  };
+  try {
+    const url = 'https://air-quality-api.open-meteo.com/v1/air-quality';
+    const params = {
+      latitude: LAT,
+      longitude: LON,
+      timezone: TZ,
+      current: 'us_aqi,pm2_5,pm10,ozone,uv_index',
+      daily: 'us_aqi_max,us_aqi_min',
+      forecast_days: 7,
+    };
 
-  const { data } = await axios.get(url, { params, timeout: 15000 });
-  const currentAqi = data?.current?.us_aqi;
+    const { data } = await axios.get(url, { params, timeout: 15000 });
+    const currentAqi = data?.current?.us_aqi;
 
-  return {
-    source: 'Open-Meteo Air Quality API',
-    location: 'Montgomery, AL',
-    current: data.current,
-    current_units: data.current_units,
-    daily: data.daily,
-    daily_units: data.daily_units,
-    classification: classifyAqi(currentAqi),
-    updatedAt: new Date().toISOString(),
-  };
+    return {
+      source: 'Open-Meteo Air Quality API',
+      location: 'Montgomery, AL',
+      current: data.current,
+      current_units: data.current_units,
+      daily: data.daily,
+      daily_units: data.daily_units,
+      classification: classifyAqi(currentAqi),
+      updatedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    return {
+      source: 'Open-Meteo Air Quality API',
+      location: 'Montgomery, AL',
+      current: {},
+      current_units: {},
+      daily: { us_aqi_max: [], us_aqi_min: [] },
+      daily_units: {},
+      classification: classifyAqi(null),
+      unavailable: true,
+      error: error.message,
+      updatedAt: new Date().toISOString(),
+    };
+  }
 }
 
 module.exports = {

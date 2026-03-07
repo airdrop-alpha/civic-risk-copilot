@@ -1,112 +1,729 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Civic Risk Copilot dashboard for Montgomery, Alabama residents." />
-    <title>Civic Risk Copilot | Montgomery Dashboard</title>
-    <style>
-      :root { --bg:#f3f7fb; --surface:#fff; --ink:#1b2a36; --muted:#5f7386; --line:#d7e1ea; --blue:#0f4c81; --blue2:#1d70b8; --good:#1f9d57; --moderate:#d3a208; --high:#d96a1c; --severe:#be2d2d; }
-      * { box-sizing: border-box; }
-      body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif; background:var(--bg); color:var(--ink);} 
-      .page { max-width:1240px; margin:0 auto; padding:18px 14px 90px; }
-      .header { display:flex; justify-content:space-between; align-items:end; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
-      h1 { margin:0; color:#0c3b62; }
-      .subtitle { color:var(--muted); margin:4px 0 0; font-size:.92rem; }
-      .risk-banner { border-radius:14px; color:#fff; padding:14px 16px; margin-bottom:12px; box-shadow:0 10px 24px rgba(15,76,129,.25);} 
-      .risk-top { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
-      .score-pill { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:6px 10px; font-weight:700; }
-      .risk-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px; margin-top:10px; }
-      .risk-factor { background:rgba(255,255,255,.16); border-radius:10px; padding:8px; border:1px solid rgba(255,255,255,.28); }
-      .risk-factor .meta { display:flex; justify-content:space-between; font-size:.8rem; opacity:.95; }
-      .bar { margin-top:6px; width:100%; height:7px; background:rgba(255,255,255,.28); border-radius:99px; overflow:hidden; }
-      .bar>span { display:block; height:100%; background:#fff; }
-
-      .dashboard-grid { display:grid; grid-template-columns:1fr; gap:12px; }
-      .card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; box-shadow:0 4px 14px rgba(17,44,70,.08); }
-      .card h2 { margin:0 0 10px; color:var(--blue); font-size:1.02rem; }
-      .kv { margin:5px 0; font-size:.92rem; }
-      .kv span { color:var(--muted); }
-      .badge { display:inline-flex; align-items:center; border-radius:999px; padding:3px 8px; font-size:.75rem; font-weight:600; border:1px solid transparent; }
-      .badge.low,.good { background:#e8f7ef; color:#0d6f37; border-color:#b5e3ca; }
-      .badge.moderate { background:#fff6db; color:#8f6c00; border-color:#f1da8a; }
-      .badge.high { background:#ffeddf; color:#9f4800; border-color:#f3c39a; }
-      .badge.severe { background:#fdeceb; color:#a22020; border-color:#efb5b5; }
-      .badge.unknown { background:#edf1f5; color:#5b6c7c; border-color:#d2dce6; }
-      .list { display:grid; gap:8px; max-height:230px; overflow:auto; }
-      .item { border:1px solid var(--line); border-left:5px solid var(--blue2); border-radius:8px; padding:8px; background:#fbfdff; font-size:.87rem; }
-      .item.low{border-left-color:var(--good)} .item.moderate{border-left-color:var(--moderate)} .item.high{border-left-color:var(--high)} .item.severe{border-left-color:var(--severe)}
-      .forecast-strip { display:grid; grid-template-columns:repeat(7,minmax(95px,1fr)); gap:8px; overflow:auto; }
-      .forecast-day { border:1px solid var(--line); border-radius:10px; padding:8px; text-align:center; background:#f8fcff; min-width:95px; }
-      .chat-fab { position:fixed; right:14px; bottom:14px; border:none; border-radius:999px; padding:12px 14px; color:#fff; background:var(--blue); font-weight:700; box-shadow:0 10px 24px rgba(8,61,102,.28); cursor:pointer; }
-      .chat-panel { position:fixed; right:14px; bottom:66px; width:min(390px,calc(100vw - 28px)); height:470px; display:none; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 18px 42px rgba(8,61,102,.25); }
-      .chat-panel.open{display:grid;grid-template-rows:auto auto 1fr auto}
-      .chat-head{background:#083d66;color:#fff;padding:10px 12px;font-weight:700}
-      .suggested{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:#f7fbff;border-bottom:1px solid var(--line)}
-      .suggested button{border:1px solid #bdd6eb;background:#fff;border-radius:999px;padding:6px 9px;cursor:pointer;font-size:.78rem}
-      .messages{padding:10px;overflow-y:auto;background:linear-gradient(180deg,#f8fbff,#fefefe)}
-      .msg{margin:8px 0;border-radius:10px;padding:8px 10px;max-width:92%;white-space:pre-wrap;font-size:.9rem}
-      .msg.user{margin-left:auto;background:#0f4c81;color:#fff}.msg.bot{background:#fff;border:1px solid var(--line)}
-      .chat-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;border-top:1px solid var(--line)}
-      .chat-form input{border:1px solid #b6cde2;border-radius:8px;padding:10px}.chat-form button{border:none;border-radius:8px;background:#0f4c81;color:#fff;padding:10px 12px}
-      @media (min-width:900px){ .dashboard-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .span-2{grid-column:span 2;} }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Real-time civic risk intelligence dashboard for Montgomery, Alabama." />
+    <title>Civic Risk Copilot | Montgomery, AL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              panel: '#111827',
+              panelSoft: '#1f2937',
+              line: '#334155',
+              accent: '#22d3ee',
+              severe: '#ef4444',
+              high: '#f97316',
+              moderate: '#f59e0b',
+              low: '#10b981',
+            },
+            keyframes: {
+              riseIn: {
+                '0%': { opacity: '0', transform: 'translateY(12px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+            },
+            animation: {
+              riseIn: 'riseIn 450ms ease-out',
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
-  <body>
-    <div class="page">
-      <header class="header"><div><h1>Montgomery Civic Risk Dashboard</h1><p class="subtitle">Live civic risk intelligence for Montgomery, Alabama</p></div><div class="subtitle">Last updated: <strong id="last-updated">Loading...</strong></div></header>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="pointer-events-none fixed inset-0 opacity-40" style="background: radial-gradient(circle at 20% 10%, #164e63 0, transparent 35%), radial-gradient(circle at 80% 0%, #3f1d5b 0, transparent 32%), linear-gradient(180deg, #020617 0, #0b1120 100%);"></div>
 
-      <section id="risk-banner" class="risk-banner"><div class="risk-top"><strong>Overall Risk: Loading...</strong><span class="score-pill" id="overall-score">Score --</span></div><p id="risk-method">Weighted multi-hazard model loading...</p><div id="risk-breakdown" class="risk-grid"></div></section>
+    <div class="relative mx-auto max-w-[1440px] p-4 md:p-6 lg:p-8">
+      <header class="mb-5 rounded-2xl border border-line/80 bg-panel/90 p-5 backdrop-blur">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-cyan-300">City of Montgomery Civic Intelligence</p>
+            <h1 class="mt-1 text-2xl font-semibold md:text-3xl">Civic Risk Copilot Dashboard</h1>
+            <p class="mt-1 text-sm text-slate-400">World Wide Vibes Hackathon | Live risk awareness for residents and responders</p>
+          </div>
+          <div class="text-right text-xs text-slate-400">
+            <p>Last updated</p>
+            <p id="last-updated" class="text-sm font-medium text-slate-200">Loading...</p>
+          </div>
+        </div>
+      </header>
 
-      <section class="dashboard-grid">
-        <article class="card" id="weather-card"><h2>Current Weather</h2><div>Loading...</div></article>
-        <article class="card" id="alerts-card"><h2>Active Alerts</h2><div>Loading...</div></article>
-        <article class="card" id="aqi-card"><h2>Air Quality</h2><div>Loading...</div></article>
-        <article class="card" id="quake-card"><h2>Earthquake Activity (7d)</h2><div>Loading...</div></article>
-        <article class="card" id="incidents-card"><h2>Community Safety</h2><div>Loading...</div></article>
-        <article class="card" id="services-card"><h2>City Services</h2><div>Loading...</div></article>
-        <article class="card" id="flood-card"><h2>Flood Watch</h2><div>Loading...</div></article>
-        <article class="card span-2" id="forecast-card"><h2>7-Day Forecast</h2><div class="forecast-strip" id="forecast-strip"></div></article>
-        <article class="card span-2" id="news-card"><h2>Breaking Local Risk News</h2><div>Loading...</div></article>
+      <section id="critical-banner" class="mb-5 hidden animate-riseIn rounded-2xl border border-red-400/40 bg-red-500/10 p-4 text-red-100">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.18em]">Critical Conditions</p>
+            <p id="critical-text" class="mt-1 text-sm">Severe conditions detected.</p>
+          </div>
+          <span class="rounded-full bg-red-500/25 px-3 py-1 text-xs font-semibold">Action Required</span>
+        </div>
+      </section>
+
+      <section id="app-status" class="mb-5 hidden rounded-2xl border p-4 text-sm"></section>
+
+      <section id="hero-stats" class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5"></section>
+
+      <section class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
+        <div class="space-y-5">
+          <div class="grid grid-cols-1 gap-5 lg:grid-cols-[340px_1fr]">
+            <article class="rounded-2xl border border-line bg-panel/90 p-5 backdrop-blur">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Real-time Risk Index</p>
+                  <p id="overall-level" class="mt-1 text-lg font-semibold">Loading...</p>
+                </div>
+                <span id="overall-badge" class="rounded-full border px-2 py-1 text-xs">--</span>
+              </div>
+              <div class="mt-4 flex justify-center">
+                <div id="gauge" class="grid h-52 w-52 place-items-center rounded-full border border-line bg-panelSoft/90 transition-all duration-700" style="background: conic-gradient(#10b981 0deg, #1f2937 0deg);">
+                  <div class="grid h-40 w-40 place-items-center rounded-full bg-panel text-center">
+                    <p id="gauge-score" class="text-4xl font-bold">--</p>
+                    <p class="text-xs text-slate-400">/ 100</p>
+                  </div>
+                </div>
+              </div>
+              <p id="risk-method" class="mt-4 text-sm text-slate-400">Loading model...</p>
+              <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <button id="share-btn" class="rounded-lg border border-cyan-400/40 bg-cyan-500/10 px-3 py-2 transition hover:bg-cyan-500/20">Share Risk Report</button>
+                <button id="demo-btn" class="rounded-lg border border-violet-400/40 bg-violet-500/10 px-3 py-2 transition hover:bg-violet-500/20">Load Demo Mode</button>
+              </div>
+            </article>
+
+            <article class="rounded-2xl border border-line bg-panel/90 p-5 backdrop-blur">
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">Risk Factors</h2>
+                <span class="text-xs text-slate-400">Expand for detail</span>
+              </div>
+              <div id="factor-grid" class="grid grid-cols-1 gap-3 md:grid-cols-2"></div>
+            </article>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <article id="briefing-card" class="rounded-2xl border border-line bg-panel/90 p-4"></article>
+
+            <article class="rounded-2xl border border-line bg-panel/90 p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">7-Day Risk Forecast</h3>
+                <p id="risktrend-updated" class="text-xs text-slate-500">--</p>
+              </div>
+              <canvas id="risk-trend-chart" height="180"></canvas>
+              <div id="risk-trend-fallback" class="hidden mt-3 grid grid-cols-7 gap-2 text-center text-xs"></div>
+            </article>
+
+            <article class="rounded-2xl border border-line bg-panel/90 p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Source Reliability</h3>
+                <p id="source-summary" class="text-xs text-slate-500">Live/Stale status</p>
+              </div>
+              <div id="source-status" class="grid grid-cols-2 gap-2 text-xs"></div>
+            </article>
+          </div>
+
+          <section class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <article class="rounded-2xl border border-line bg-panel/90 p-4" id="weather-card"></article>
+            <article class="rounded-2xl border border-line bg-panel/90 p-4" id="alerts-card"></article>
+            <article class="rounded-2xl border border-line bg-panel/90 p-4" id="aqi-card"></article>
+            <article class="rounded-2xl border border-line bg-panel/90 p-4" id="flood-card"></article>
+            <article class="rounded-2xl border border-line bg-panel/90 p-4" id="incidents-card"></article>
+            <article class="rounded-2xl border border-line bg-panel/90 p-4" id="quake-card"></article>
+            <article class="rounded-2xl border border-line bg-panel/90 p-4 md:col-span-2 xl:col-span-3" id="news-card"></article>
+            <article class="rounded-2xl border border-line bg-panel/90 p-4 md:col-span-2 xl:col-span-3" id="services-card"></article>
+          </section>
+        </div>
+
+        <aside class="hidden xl:block">
+          <div class="sticky top-5 rounded-2xl border border-line bg-panel/90 p-4">
+            <div class="mb-3 flex items-center justify-between">
+              <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-cyan-300">AI Copilot</h3>
+              <span class="text-xs text-slate-500">Context-aware</span>
+            </div>
+            <div id="chat-messages-desktop" class="h-[420px] space-y-2 overflow-y-auto rounded-xl border border-line bg-slate-900/60 p-3 text-sm">
+              <div class="max-w-[90%] rounded-lg bg-slate-800 p-2 text-slate-200">Ask about severe weather, flood risk, air quality, and preparedness.</div>
+            </div>
+            <div id="chat-suggest-desktop" class="mt-3 flex flex-wrap gap-2"></div>
+            <form id="chat-form-desktop" class="mt-3 flex gap-2">
+              <input id="chat-input-desktop" class="w-full rounded-lg border border-line bg-slate-900 px-3 py-2 text-sm outline-none ring-cyan-400 transition focus:ring-1" placeholder="Ask the Civic Copilot" required />
+              <button class="rounded-lg bg-cyan-500 px-3 py-2 text-sm font-medium text-slate-950 transition hover:bg-cyan-400" type="submit">Send</button>
+            </form>
+          </div>
+        </aside>
       </section>
     </div>
 
-    <button class="chat-fab" id="chat-toggle">Open AI Copilot</button>
-    <aside class="chat-panel" id="chat-panel"><div class="chat-head">AI Civic Copilot</div><div class="suggested" id="suggested-questions"></div><div class="messages" id="messages"><div class="msg bot">Ask about flood, heat, AQI, or emergency prep.</div></div><form class="chat-form" id="chat-form"><input id="chat-input" placeholder="What should I do about today's risks?" required /><button type="submit">Send</button></form></aside>
+    <button id="chat-toggle-mobile" class="fixed bottom-5 right-5 z-30 rounded-full border border-cyan-400/50 bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 xl:hidden">AI Copilot</button>
+
+    <section id="chat-mobile" class="fixed inset-x-0 bottom-0 z-40 hidden max-h-[80vh] rounded-t-2xl border border-line bg-panel p-4 xl:hidden">
+      <div class="mb-3 flex items-center justify-between">
+        <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-cyan-300">AI Copilot</h3>
+        <button id="chat-close-mobile" class="rounded-md border border-line px-2 py-1 text-xs">Close</button>
+      </div>
+      <div id="chat-messages-mobile" class="h-[280px] space-y-2 overflow-y-auto rounded-xl border border-line bg-slate-900/60 p-3 text-sm">
+        <div class="max-w-[90%] rounded-lg bg-slate-800 p-2 text-slate-200">Ask about severe weather, flood risk, air quality, and preparedness.</div>
+      </div>
+      <div id="chat-suggest-mobile" class="mt-3 flex flex-wrap gap-2"></div>
+      <form id="chat-form-mobile" class="mt-3 flex gap-2">
+        <input id="chat-input-mobile" class="w-full rounded-lg border border-line bg-slate-900 px-3 py-2 text-sm outline-none ring-cyan-400 transition focus:ring-1" placeholder="Ask the Civic Copilot" required />
+        <button class="rounded-lg bg-cyan-500 px-3 py-2 text-sm font-medium text-slate-950 transition hover:bg-cyan-400" type="submit">Send</button>
+      </form>
+    </section>
 
     <script>
-      const suggestedQuestions=['What is the biggest risk in Montgomery today?','Should I avoid any roads due to flooding?','Are there severe weather alerts right now?','How does air quality affect outdoor plans today?'];
-      const titleCase = (t='') => t.replace(/\b\w/g,m=>m.toUpperCase());
-      const severityClass=(v='')=>{v=v.toLowerCase();if(v.includes('severe'))return'severe';if(v.includes('high')||v.includes('unhealthy'))return'high';if(v.includes('moderate'))return'moderate';if(v.includes('low')||v.includes('good'))return'low';return'unknown';};
-      const riskBannerStyle=(l)=>l==='severe'?'linear-gradient(90deg,#8b1f17,#c0392b)':l==='high'?'linear-gradient(90deg,#b35c16,#e67e22)':l==='moderate'?'linear-gradient(90deg,#a17a00,#e1b12c)':'linear-gradient(90deg,#116b36,#1e9f51)';
-      const createList=(items,fmt)=>!items?.length?'<p class="subtitle">No records right now.</p>':`<div class="list">${items.map(fmt).join('')}</div>`;
+      const suggestedQuestions = [
+        'What is the biggest risk in Montgomery right now?',
+        'Should residents avoid outdoor activity today?',
+        'What actions should city responders prioritize?',
+        'Give me a short emergency prep checklist for tonight.'
+      ];
 
-      function updateRiskBanner(d){
-        const level=d.overallRisk||'unknown';
-        const rb=d.riskBreakdown||{};
-        const banner=document.getElementById('risk-banner');
-        banner.style.background=riskBannerStyle(level);
-        banner.querySelector('strong').textContent=`Overall Risk Level: ${titleCase(level)}`;
-        document.getElementById('overall-score').textContent=`Score ${d.overallScore ?? '--'} / 100`;
-        document.getElementById('risk-method').textContent=rb.methodology || 'Weighted model';
-        document.getElementById('risk-breakdown').innerHTML=(rb.factors||[]).map(f=>`
-          <div class="risk-factor"><div class="meta"><strong>${f.label}</strong><span>${Math.round(f.score)}</span></div><div class="bar"><span style="width:${Math.min(100,f.score)}%"></span></div><div class="meta"><span>${titleCase(f.level)}</span><span>w ${Math.round(f.weight*100)}%</span></div></div>`).join('');
+      let latestDashboard = null;
+      let riskChart = null;
+      let previousGaugeScore = 0;
+      let eventStream = null;
+      let currentMode = 'live';
+
+      const severityClass = (level = '') => {
+        const v = String(level).toLowerCase();
+        if (v.includes('severe')) return 'severe';
+        if (v.includes('high') || v.includes('unhealthy')) return 'high';
+        if (v.includes('moderate')) return 'moderate';
+        if (v.includes('low') || v.includes('good')) return 'low';
+        return 'unknown';
+      };
+
+      const severityStyles = {
+        severe: 'border-red-400/50 bg-red-500/10 text-red-100',
+        high: 'border-orange-400/50 bg-orange-500/10 text-orange-100',
+        moderate: 'border-amber-400/50 bg-amber-500/10 text-amber-100',
+        low: 'border-emerald-400/50 bg-emerald-500/10 text-emerald-100',
+        unknown: 'border-slate-500/50 bg-slate-500/10 text-slate-100',
+      };
+
+      const gaugeColor = (score) => {
+        if (score >= 75) return '#ef4444';
+        if (score >= 50) return '#f97316';
+        if (score >= 25) return '#f59e0b';
+        return '#10b981';
+      };
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
       }
 
-      function updateWeatherCard(w){const c=w.current||{};document.getElementById('weather-card').innerHTML=`<h2>Current Weather</h2><p class="kv"><span>Condition:</span> ${c.weather_description||'Unknown'}</p><p class="kv"><span>Temperature:</span> ${c.temperature_2m ?? 'N/A'} ${w.current_units?.temperature_2m||''}</p><p class="kv"><span>Wind:</span> ${c.wind_speed_10m ?? 'N/A'} ${w.current_units?.wind_speed_10m||''}</p><p class="kv"><span>Humidity:</span> ${c.relative_humidity_2m ?? 'N/A'} ${w.current_units?.relative_humidity_2m||''}</p>`;}
-      function updateAlertsCard(a){const rows=(a.alerts||[]).slice(0,8);document.getElementById('alerts-card').innerHTML=`<h2>Active Alerts</h2>${createList(rows,r=>`<div class="item ${severityClass(r.severity)}"><strong>${r.event||r.type||'Alert'}</strong><div>${r.headline||r.detail||'No details'}</div></div>`)}`;}
-      function updateAqiCard(a){const cls=severityClass(a.classification?.level);document.getElementById('aqi-card').innerHTML=`<h2>Air Quality</h2><p class="kv"><span>US AQI:</span> ${a.current?.us_aqi ?? 'N/A'} <span class="badge ${cls}">${a.classification?.label||'Unknown'}</span></p><p class="kv"><span>PM2.5:</span> ${a.current?.pm2_5 ?? 'N/A'} ${a.current_units?.pm2_5||''}</p><p class="kv"><span>Ozone:</span> ${a.current?.ozone ?? 'N/A'} ${a.current_units?.ozone||''}</p>`;}
-      function updateQuakeCard(q){const rows=(q.events||[]).slice(0,6);document.getElementById('quake-card').innerHTML=`<h2>Earthquake Activity (7d)</h2><p class="kv"><span>Events:</span> ${q.total ?? 0}</p><p class="kv"><span>Max magnitude:</span> ${q.maxMagnitude ?? 0} <span class="badge ${severityClass(q.severity)}">${titleCase(q.severity||'low')}</span></p>${createList(rows,e=>`<div class="item ${severityClass(e.severity)}"><strong>M${e.magnitude ?? 'N/A'} - ${e.place||'Unknown place'}</strong><div>${e.time?new Date(e.time).toLocaleString():'Unknown time'}</div></div>`)}`;}
-      function updateIncidentsCard(i){const rows=(i.incidents||[]).slice(0,6);document.getElementById('incidents-card').innerHTML=`<h2>Community Safety</h2>${createList(rows,r=>`<div class="item ${severityClass(r.severity)}"><strong>${r.type}</strong><div>${r.location||'Montgomery area'}${r.time?` | ${new Date(r.time).toLocaleString()}`:''}</div></div>`)}`;}
-      function updateCityServicesCard(s){const rows=(s.announcements||[]).slice(0,6);document.getElementById('services-card').innerHTML=`<h2>City Services</h2><p class="subtitle">${s.note||''}</p>${createList(rows,a=>`<div class="item low"><strong>${a.title}</strong><div>${a.link?`<a href="${a.link}" target="_blank" rel="noopener noreferrer">View notice</a>`:''}</div></div>`)}`;}
-      function updateFloodCard(f){const rows=(f.gauges||[]).slice(0,6);document.getElementById('flood-card').innerHTML=`<h2>Flood Watch</h2><p class="kv"><span>Highest Gauge Risk:</span> <span class="badge ${severityClass(f.highestRisk)}">${titleCase(f.highestRisk||'unknown')}</span></p>${createList(rows,g=>`<div class="item ${severityClass(g.riskLevel)}"><strong>${g.siteName||g.siteCode}</strong><div>Stage: ${g.stageFeet ?? 'N/A'} ${g.stageUnit||'ft'} | Discharge: ${g.dischargeCfs ?? 'N/A'} ${g.dischargeUnit||'cfs'}</div></div>`)}`;}
-      function updateForecast(w){const d=w.daily?.time||[];const mx=w.daily?.temperature_2m_max||[];const mn=w.daily?.temperature_2m_min||[];const p=w.daily?.precipitation_probability_max||[];document.getElementById('forecast-strip').innerHTML=d.map((date,i)=>`<div class="forecast-day"><strong>${new Date(date).toLocaleDateString([], { weekday: 'short' })}</strong><div>${mx[i]??'-'} / ${mn[i]??'-'} ${w.daily_units?.temperature_2m_max||''}</div><div>${p[i]??'-'}${w.daily_units?.precipitation_probability_max||'%'}</div></div>`).join('');}
-      function updateNewsCard(n){const rows=(n.stories||[]).slice(0,8);document.getElementById('news-card').innerHTML=`<h2>Breaking Local Risk News</h2>${createList(rows,s=>`<div class="item moderate"><strong>${s.title}</strong><div>${s.source} | <a href="${s.link}" target="_blank" rel="noopener noreferrer">Open story</a></div></div>`)}`;}
+      function safeUrl(value) {
+        if (!value) return '#';
 
-      function addMessage(text, role='bot', sources=[]){const m=document.getElementById('messages');const w=document.createElement('div');w.className=`msg ${role}`;w.textContent=text;if(role==='bot'&&sources.length){const s=document.createElement('div');s.className='subtitle';s.textContent=`Sources: ${sources.join(', ')}`;w.appendChild(s);}m.appendChild(w);m.scrollTop=m.scrollHeight;}
-      async function loadDashboard(){try{const res=await fetch('/api/dashboard');const d=await res.json();document.getElementById('last-updated').textContent=new Date(d.updatedAt).toLocaleString();updateRiskBanner(d);updateWeatherCard(d.weather||{});updateAlertsCard(d.alerts||{});updateAqiCard(d.airQuality||{});updateQuakeCard(d.earthquakes||{});updateIncidentsCard(d.incidents||{});updateCityServicesCard(d.cityServices||{});updateFloodCard(d.flood||{});updateForecast(d.weather||{});updateNewsCard(d.news||{});}catch{document.getElementById('last-updated').textContent='Unavailable';addMessage('Dashboard data failed to load. Some sources may be unavailable.','bot');}}
-      function setupChat(){const p=document.getElementById('chat-panel');const t=document.getElementById('chat-toggle');const f=document.getElementById('chat-form');const i=document.getElementById('chat-input');const sq=document.getElementById('suggested-questions');t.addEventListener('click',()=>{p.classList.toggle('open');t.textContent=p.classList.contains('open')?'Close AI Copilot':'Open AI Copilot';});sq.innerHTML=suggestedQuestions.map(q=>`<button type="button" data-q="${q.replace(/"/g,'&quot;')}">${q}</button>`).join('');sq.addEventListener('click',e=>{const b=e.target.closest('button[data-q]');if(!b)return;i.value=b.dataset.q;i.focus();});f.addEventListener('submit',async e=>{e.preventDefault();const message=i.value.trim();if(!message)return;addMessage(message,'user');i.value='';try{const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});const data=await res.json();addMessage(data.answer||'No response available.','bot',data.sources||[]);}catch{addMessage('Chat request failed. Please try again shortly.','bot');}});}
-      setupChat(); loadDashboard(); setInterval(loadDashboard,5*60*1000);
+        try {
+          const url = new URL(value, window.location.origin);
+          if (url.protocol === 'http:' || url.protocol === 'https:') return url.toString();
+        } catch (_) {
+          return '#';
+        }
+
+        return '#';
+      }
+
+      function renderAppStatus(message, tone = 'unknown') {
+        const el = document.getElementById('app-status');
+        if (!message) {
+          el.className = 'mb-5 hidden rounded-2xl border p-4 text-sm';
+          el.textContent = '';
+          return;
+        }
+
+        el.className = `mb-5 rounded-2xl border p-4 text-sm ${severityStyles[severityClass(tone)] || severityStyles.unknown}`;
+        el.textContent = message;
+      }
+
+      function toLocalTime(value) {
+        if (!value) return '--';
+        return new Date(value).toLocaleString();
+      }
+
+      function animateGauge(targetScore) {
+        const start = previousGaugeScore;
+        const end = Math.max(0, Math.min(100, Number(targetScore) || 0));
+        const durationMs = 700;
+        const startTime = performance.now();
+
+        function draw(now) {
+          const progress = Math.min(1, (now - startTime) / durationMs);
+          const score = Math.round(start + ((end - start) * progress));
+          const deg = Math.round((score / 100) * 360);
+          const color = gaugeColor(score);
+
+          document.getElementById('gauge').style.background = `conic-gradient(${color} ${deg}deg, #1f2937 ${deg}deg)`;
+          document.getElementById('gauge-score').textContent = String(score);
+
+          if (progress < 1) {
+            requestAnimationFrame(draw);
+          } else {
+            previousGaugeScore = end;
+          }
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      function renderRiskOverview(data) {
+        const level = data.overallRisk || 'unknown';
+        const score = data.overallScore || 0;
+        const cls = severityClass(level);
+
+        document.getElementById('last-updated').textContent = toLocalTime(data.updatedAt);
+        document.getElementById('overall-level').textContent = `Overall Risk: ${level.toUpperCase()}`;
+        document.getElementById('overall-badge').className = `rounded-full border px-2 py-1 text-xs ${severityStyles[cls] || severityStyles.unknown}`;
+        document.getElementById('overall-badge').textContent = `${score}/100`;
+        document.getElementById('risk-method').textContent = data.riskBreakdown?.methodology || 'Risk model unavailable';
+        animateGauge(score);
+
+        const severeFactors = (data.riskBreakdown?.factors || []).filter((f) => severityClass(f.level) === 'severe');
+        const criticalBanner = document.getElementById('critical-banner');
+        const criticalText = document.getElementById('critical-text');
+
+        if (cls === 'severe' || severeFactors.length > 0) {
+          criticalBanner.classList.remove('hidden');
+          const names = severeFactors.map((f) => f.label).join(', ');
+          criticalText.textContent = names ? `Severe pressure from: ${names}.` : 'Severe conditions detected in Montgomery.';
+        } else {
+          criticalBanner.classList.add('hidden');
+        }
+      }
+
+      function renderHeroStats(data) {
+        const stats = data.heroStats || [];
+        const holder = document.getElementById('hero-stats');
+
+        holder.innerHTML = stats.map((item) => {
+          const cls = severityClass(item.tone);
+          return `<article class="rounded-2xl border bg-panel/90 p-4 ${severityStyles[cls] || severityStyles.unknown}">
+            <p class="text-[11px] uppercase tracking-[0.18em] opacity-80">${escapeHtml(item.label)}</p>
+            <p class="mt-2 text-2xl font-semibold">${escapeHtml(item.value)}</p>
+          </article>`;
+        }).join('');
+      }
+
+      function renderFactorCards(data) {
+        const factors = data.riskBreakdown?.factors || [];
+        const holder = document.getElementById('factor-grid');
+
+        holder.innerHTML = factors.map((factor) => {
+          const cls = severityClass(factor.level);
+          const score = Math.round(factor.score || 0);
+          const width = Math.max(0, Math.min(100, score));
+
+          return `
+            <details class="rounded-xl border p-3 ${severityStyles[cls] || severityStyles.unknown}">
+              <summary class="cursor-pointer list-none">
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <p class="text-sm font-semibold">${factor.label}</p>
+                    <p class="text-xs opacity-80">${factor.level.toUpperCase()} | weight ${Math.round((factor.weight || 0) * 100)}%</p>
+                  </div>
+                  <span class="text-lg font-bold">${score}</span>
+                </div>
+                <div class="mt-2 h-1.5 rounded-full bg-slate-800/60">
+                  <div class="h-full rounded-full bg-current transition-all duration-700" style="width:${width}%"></div>
+                </div>
+              </summary>
+              <div class="mt-3 text-xs opacity-90">
+                <p>${factor.summary || 'No summary available'}</p>
+                <p class="mt-1">Weighted contribution: ${factor.weightedContribution || 0}</p>
+              </div>
+            </details>
+          `;
+        }).join('');
+      }
+
+      function renderSourceStatus(data) {
+        const sourceStatus = data.sourceStatus || {};
+        const holder = document.getElementById('source-status');
+        const sourceHealth = data.sourceHealth || {};
+
+        document.getElementById('source-summary').textContent = sourceHealth.summary || 'Live/Stale status';
+
+        holder.innerHTML = Object.entries(sourceStatus).map(([key, meta]) => {
+          const status = severityClass(meta.status === 'stale' ? 'moderate' : meta.status === 'unavailable' ? 'high' : meta.status === 'demo' ? 'high' : 'low');
+          return `<div class="rounded-lg border px-2 py-2 ${severityStyles[status] || severityStyles.unknown}">
+            <p class="text-[11px] uppercase tracking-[0.12em]">${escapeHtml(key)}</p>
+            <p class="mt-1 text-xs">${escapeHtml(meta.status || 'unknown')}</p>
+          </div>`;
+        }).join('');
+
+        if (currentMode === 'demo') {
+          renderAppStatus('Demo mode is active. Live SSE refresh is paused until you return to live data.', 'moderate');
+        } else if ((sourceHealth.counts?.unavailable || 0) > 0) {
+          renderAppStatus(`Graceful degradation active: ${sourceHealth.summary}. Some tiles may show stale or partial data.`, 'moderate');
+        } else {
+          renderAppStatus('');
+        }
+      }
+
+      function renderBriefing(data) {
+        const briefing = data.briefing || {};
+        const topFactors = briefing.topFactors || [];
+        const watchList = briefing.watchList || [];
+
+        document.getElementById('briefing-card').innerHTML = `
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-cyan-300">Action Brief</h3>
+              <p class="mt-1 text-lg font-semibold text-slate-100">${escapeHtml(briefing.headline || 'Operational summary unavailable.')}</p>
+            </div>
+            <span class="rounded-full border px-3 py-1 text-xs ${severityStyles[severityClass(data.overallRisk)] || severityStyles.unknown}">${escapeHtml(String(data.overallRisk || 'unknown').toUpperCase())}</span>
+          </div>
+          <div class="mt-4 grid gap-3 md:grid-cols-2">
+            <div class="rounded-xl border border-line bg-slate-900/60 p-3">
+              <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Recommended Now</p>
+              <div class="mt-3 space-y-2 text-sm text-slate-200">
+                ${(briefing.actions || []).map((item) => `<p>• ${escapeHtml(item)}</p>`).join('') || '<p class="text-slate-400">No actions available.</p>'}
+              </div>
+            </div>
+            <div class="rounded-xl border border-line bg-slate-900/60 p-3">
+              <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Watch List</p>
+              <div class="mt-3 space-y-2 text-sm text-slate-200">
+                ${watchList.map((item) => `<p>• ${escapeHtml(item)}</p>`).join('') || '<p class="text-slate-400">No elevated watch items.</p>'}
+              </div>
+              <div class="mt-4 flex flex-wrap gap-2">
+                ${topFactors.map((item) => `<span class="rounded-full border border-line px-2 py-1 text-xs text-slate-300">${escapeHtml(item)}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderRiskTrendChart(data) {
+        const trend = data.riskTrend || [];
+        const labels = trend.map((t) => new Date(t.date).toLocaleDateString([], { weekday: 'short' }));
+        const scores = trend.map((t) => t.score);
+        const fallback = document.getElementById('risk-trend-fallback');
+        const canvas = document.getElementById('risk-trend-chart');
+
+        document.getElementById('risktrend-updated').textContent = `Updated ${toLocalTime(data.updatedAt)}`;
+
+        if (!window.Chart) {
+          canvas.classList.add('hidden');
+          fallback.classList.remove('hidden');
+          fallback.innerHTML = trend.map((point) => {
+            const cls = severityClass(point.level);
+            return `<div class="rounded-lg border p-2 ${severityStyles[cls] || severityStyles.unknown}">
+              <p class="text-[11px] uppercase tracking-[0.12em]">${escapeHtml(new Date(point.date).toLocaleDateString([], { weekday: 'short' }))}</p>
+              <p class="mt-1 text-lg font-semibold">${escapeHtml(point.score)}</p>
+            </div>`;
+          }).join('');
+          return;
+        }
+
+        canvas.classList.remove('hidden');
+        fallback.classList.add('hidden');
+
+        if (!riskChart) {
+          riskChart = new Chart(document.getElementById('risk-trend-chart').getContext('2d'), {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Risk Score',
+                data: scores,
+                borderColor: '#22d3ee',
+                backgroundColor: 'rgba(34, 211, 238, 0.2)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+              }],
+            },
+            options: {
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { labels: { color: '#cbd5e1' } },
+              },
+              scales: {
+                y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } },
+                x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.1)' } },
+              },
+            },
+          });
+        } else {
+          riskChart.data.labels = labels;
+          riskChart.data.datasets[0].data = scores;
+          riskChart.update();
+        }
+      }
+
+      function renderInfoCards(data) {
+        const weather = data.weather || {};
+        const current = weather.current || {};
+        const weatherStamp = toLocalTime(weather.updatedAt || data.updatedAt);
+
+        document.getElementById('weather-card').innerHTML = `
+          <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Weather</h3>
+          <p class="mt-2 text-xl font-semibold">${escapeHtml(current.weather_description || 'Unknown conditions')}</p>
+          <div class="mt-3 space-y-1 text-sm text-slate-300">
+            <p>Temp: ${current.temperature_2m ?? '--'} ${weather.current_units?.temperature_2m || ''}</p>
+            <p>Feels: ${current.apparent_temperature ?? '--'} ${weather.current_units?.apparent_temperature || ''}</p>
+            <p>Humidity: ${current.relative_humidity_2m ?? '--'} ${weather.current_units?.relative_humidity_2m || ''}</p>
+            <p>Wind: ${current.wind_speed_10m ?? '--'} ${weather.current_units?.wind_speed_10m || ''}</p>
+          </div>
+          <p class="mt-3 text-xs text-slate-500">Updated ${weatherStamp}</p>
+        `;
+
+        const alerts = data.alerts?.alerts || [];
+        document.getElementById('alerts-card').innerHTML = `
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Official Alerts</h3>
+            <span class="rounded-full border border-line px-2 py-1 text-xs">${alerts.length} active</span>
+          </div>
+          <div class="mt-3 space-y-2 text-sm">
+            ${alerts.length ? alerts.slice(0, 4).map((a) => {
+              const cls = severityClass(a.severity);
+              return `<div class="rounded-lg border px-3 py-2 ${severityStyles[cls] || severityStyles.unknown}"><p class="font-medium">${escapeHtml(a.event || a.type || 'Alert')}</p><p class="mt-1 text-xs opacity-85">${escapeHtml(a.headline || a.detail || 'No details provided')}</p></div>`;
+            }).join('') : '<p class="text-slate-400">No alerts reported.</p>'}
+          </div>
+          <p class="mt-3 text-xs text-slate-500">Updated ${toLocalTime(data.alerts?.updatedAt || data.updatedAt)}</p>
+        `;
+
+        const aqi = data.airQuality || {};
+        const aqiCls = severityClass(aqi.classification?.level);
+        document.getElementById('aqi-card').innerHTML = `
+          <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Air Quality</h3>
+          <div class="mt-2 flex items-end justify-between">
+            <p class="text-3xl font-bold">${aqi.current?.us_aqi ?? '--'}</p>
+            <span class="rounded-full border px-2 py-1 text-xs ${severityStyles[aqiCls] || severityStyles.unknown}">${aqi.classification?.label || 'Unknown'}</span>
+          </div>
+          <div class="mt-3 space-y-1 text-sm text-slate-300">
+            <p>PM2.5: ${aqi.current?.pm2_5 ?? '--'} ${aqi.current_units?.pm2_5 || ''}</p>
+            <p>Ozone: ${aqi.current?.ozone ?? '--'} ${aqi.current_units?.ozone || ''}</p>
+          </div>
+          <p class="mt-3 text-xs text-slate-500">Updated ${toLocalTime(aqi.updatedAt || data.updatedAt)}</p>
+        `;
+
+        const flood = data.flood || {};
+        const floodCls = severityClass(flood.highestRisk);
+        const gauges = flood.gauges || [];
+        document.getElementById('flood-card').innerHTML = `
+          <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Flood Watch</h3>
+          <p class="mt-2 text-sm">Highest gauge risk: <span class="rounded-full border px-2 py-1 text-xs ${severityStyles[floodCls] || severityStyles.unknown}">${(flood.highestRisk || 'unknown').toUpperCase()}</span></p>
+          <div class="mt-3 space-y-2 text-sm text-slate-300">
+            ${gauges.slice(0, 3).map((g) => `<p>${g.siteName || g.siteCode}: ${g.stageFeet ?? '--'} ${g.stageUnit || 'ft'}</p>`).join('') || '<p>No gauge data</p>'}
+          </div>
+          <p class="mt-3 text-xs text-slate-500">Updated ${toLocalTime(flood.updatedAt || data.updatedAt)}</p>
+        `;
+
+        const incidents = data.incidents || {};
+        const incidentRows = incidents.incidents || [];
+        document.getElementById('incidents-card').innerHTML = `
+          <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Community Safety</h3>
+          <p class="mt-2 text-sm text-slate-300">Incidents sampled: ${incidents.total ?? 0}</p>
+          <div class="mt-3 space-y-2 text-sm">
+            ${incidentRows.slice(0, 4).map((i) => {
+              const cls = severityClass(i.severity);
+              return `<div class="rounded-lg border px-3 py-2 ${severityStyles[cls] || severityStyles.unknown}"><p class="font-medium">${escapeHtml(i.type || 'Incident')}</p><p class="mt-1 text-xs opacity-85">${escapeHtml(i.location || 'Montgomery')}${i.time ? ` | ${toLocalTime(i.time)}` : ''}</p></div>`;
+            }).join('') || '<p class="text-slate-400">No incident feed available.</p>'}
+          </div>
+          <p class="mt-3 text-xs text-slate-500">Updated ${toLocalTime(incidents.updatedAt || data.updatedAt)}</p>
+        `;
+
+        const quakes = data.earthquakes || {};
+        document.getElementById('quake-card').innerHTML = `
+          <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Seismic Activity</h3>
+          <div class="mt-2 flex items-end justify-between">
+            <p class="text-2xl font-bold">M${quakes.maxMagnitude ?? 0}</p>
+            <span class="rounded-full border px-2 py-1 text-xs ${severityStyles[severityClass(quakes.severity)] || severityStyles.unknown}">${(quakes.severity || 'low').toUpperCase()}</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-300">Events (7d): ${quakes.total ?? 0}</p>
+          <p class="mt-3 text-xs text-slate-500">Updated ${toLocalTime(quakes.updatedAt || data.updatedAt)}</p>
+        `;
+
+        const stories = data.news?.stories || [];
+        document.getElementById('news-card').innerHTML = `
+          <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">Breaking Local Risk News</h3>
+          <div class="mt-3 grid gap-2 text-sm md:grid-cols-2">
+            ${stories.slice(0, 6).map((s) => `<a href="${safeUrl(s.link)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-line bg-slate-900/60 p-3 transition hover:border-cyan-400/40"><p class="font-medium">${escapeHtml(s.title)}</p><p class="mt-1 text-xs text-slate-400">${escapeHtml(s.source || 'Local source')}</p></a>`).join('') || '<p class="text-slate-400">No stories available.</p>'}
+          </div>
+          <p class="mt-3 text-xs text-slate-500">Updated ${toLocalTime(data.news?.updatedAt || data.updatedAt)}</p>
+        `;
+
+        const notices = data.cityServices?.announcements || [];
+        document.getElementById('services-card').innerHTML = `
+          <h3 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">City Services</h3>
+          <p class="mt-2 text-sm text-slate-400">${escapeHtml(data.cityServices?.note || 'Public service updates and notices.')}</p>
+          <div class="mt-3 grid gap-2 text-sm md:grid-cols-2">
+            ${notices.slice(0, 6).map((n) => `<a href="${safeUrl(n.link)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-line bg-slate-900/60 p-3 transition hover:border-cyan-400/40"><p class="font-medium">${escapeHtml(n.title || 'City update')}</p></a>`).join('') || '<p class="text-slate-400">No service updates available.</p>'}
+          </div>
+          <p class="mt-3 text-xs text-slate-500">Updated ${toLocalTime(data.cityServices?.updatedAt || data.updatedAt)}</p>
+        `;
+      }
+
+      function buildShareSummary(data) {
+        const topFactors = (data.riskBreakdown?.factors || []).slice().sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 3);
+        const lines = [
+          `Montgomery Civic Risk Update (${toLocalTime(data.updatedAt)})`,
+          `Overall risk: ${String(data.overallRisk || 'unknown').toUpperCase()} (${data.overallScore || '--'}/100)`,
+          `Top drivers: ${topFactors.map((f) => `${f.label} ${Math.round(f.score || 0)}`).join(', ') || 'N/A'}`,
+          `Dashboard: ${window.location.origin}`,
+        ];
+        return lines.join('\n');
+      }
+
+      async function shareSummary() {
+        if (!latestDashboard) return;
+        const text = buildShareSummary(latestDashboard);
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'Montgomery Civic Risk Update',
+              text,
+            });
+            return;
+          } catch (_) {
+            // Fall back to clipboard.
+          }
+        }
+
+        try {
+          await navigator.clipboard.writeText(text);
+          alert('Risk report copied to clipboard.');
+        } catch (_) {
+          alert(text);
+        }
+      }
+
+      async function loadDashboard(mode = 'live') {
+        currentMode = mode;
+        const url = mode === 'demo' ? '/api/dashboard?mode=demo' : '/api/dashboard';
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`dashboard load failed: ${response.status}`);
+        }
+        const data = await response.json();
+        renderDashboard(data);
+        document.getElementById('demo-btn').textContent = currentMode === 'demo' ? 'Return to Live Feed' : 'Load Demo Mode';
+      }
+
+      function renderDashboard(data) {
+        latestDashboard = data;
+        renderRiskOverview(data);
+        renderHeroStats(data);
+        renderFactorCards(data);
+        renderBriefing(data);
+        renderRiskTrendChart(data);
+        renderSourceStatus(data);
+        renderInfoCards(data);
+      }
+
+      function addChatMessage(containerId, text, role = 'bot') {
+        const container = document.getElementById(containerId);
+        const row = document.createElement('div');
+        row.className = role === 'user'
+          ? 'ml-auto max-w-[90%] rounded-lg bg-cyan-500 p-2 text-slate-950'
+          : 'max-w-[90%] rounded-lg bg-slate-800 p-2 text-slate-200';
+        row.textContent = text;
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function setupChatPanel(suffix) {
+        const messagesId = `chat-messages-${suffix}`;
+        const suggestId = `chat-suggest-${suffix}`;
+        const formId = `chat-form-${suffix}`;
+        const inputId = `chat-input-${suffix}`;
+
+        const suggestWrap = document.getElementById(suggestId);
+        suggestWrap.innerHTML = suggestedQuestions.map((q) => `<button type="button" class="rounded-full border border-line px-2 py-1 text-xs text-slate-300 transition hover:border-cyan-400/50">${q}</button>`).join('');
+
+        suggestWrap.addEventListener('click', (event) => {
+          const btn = event.target.closest('button');
+          if (!btn) return;
+          document.getElementById(inputId).value = btn.textContent;
+          document.getElementById(inputId).focus();
+        });
+
+        document.getElementById(formId).addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const input = document.getElementById(inputId);
+          const message = input.value.trim();
+          if (!message) return;
+
+          addChatMessage(messagesId, message, 'user');
+          input.value = '';
+
+          try {
+            const res = await fetch('/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message }),
+            });
+            const body = await res.json();
+            if (!res.ok) {
+              throw new Error(body.error || 'chat failed');
+            }
+            addChatMessage(messagesId, body.answer || 'No response available.', 'bot');
+          } catch (_) {
+            addChatMessage(messagesId, 'Copilot is unavailable right now. Try again shortly.', 'bot');
+          }
+        });
+      }
+
+      function setupChatMobileDrawer() {
+        const toggle = document.getElementById('chat-toggle-mobile');
+        const panel = document.getElementById('chat-mobile');
+        const close = document.getElementById('chat-close-mobile');
+
+        toggle.addEventListener('click', () => panel.classList.remove('hidden'));
+        close.addEventListener('click', () => panel.classList.add('hidden'));
+      }
+
+      function setupSse() {
+        if (!window.EventSource) return;
+
+        eventStream = new EventSource('/api/stream');
+        eventStream.addEventListener('dashboard-update', (event) => {
+          if (currentMode !== 'live') return;
+          try {
+            const payload = JSON.parse(event.data);
+            renderDashboard(payload);
+          } catch (_) {
+            // Ignore malformed stream payload.
+          }
+        });
+
+        eventStream.addEventListener('dashboard-error', () => {
+          // Let polling fallback handle refresh.
+        });
+      }
+
+      async function bootstrap() {
+        setupChatPanel('desktop');
+        setupChatPanel('mobile');
+        setupChatMobileDrawer();
+
+        document.getElementById('share-btn').addEventListener('click', shareSummary);
+        document.getElementById('demo-btn').addEventListener('click', () => loadDashboard(currentMode === 'demo' ? 'live' : 'demo'));
+
+        try {
+          await loadDashboard('live');
+        } catch (error) {
+          document.getElementById('last-updated').textContent = 'Unavailable';
+          renderAppStatus(`Initial dashboard load failed: ${error.message}.`, 'high');
+        }
+
+        setupSse();
+        setInterval(() => {
+          if (currentMode !== 'live') return;
+          loadDashboard('live').catch(() => {});
+        }, 5 * 60 * 1000);
+      }
+
+      bootstrap();
     </script>
   </body>
 </html>

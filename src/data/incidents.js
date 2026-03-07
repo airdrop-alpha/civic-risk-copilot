@@ -82,47 +82,60 @@ async function discoverMontgomeryDataset() {
 }
 
 async function getIncidentData() {
-  const dataset = await discoverMontgomeryDataset();
-  if (!dataset) {
+  try {
+    const dataset = await discoverMontgomeryDataset();
+    if (!dataset) {
+      return {
+        source: 'Montgomery open data (Socrata catalog)',
+        dataset: null,
+        incidents: [],
+        total: 0,
+        note: 'No incident dataset discovered at runtime.',
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    const datasetId = dataset.resource.id;
+    const rowsUrl = `https://data.montgomeryal.gov/resource/${datasetId}.json`;
+
+    const { data: rows } = await axios.get(rowsUrl, {
+      params: {
+        $limit: 25,
+        $order: ':updated_at DESC',
+      },
+      timeout: 15000,
+    });
+
+    const incidents = (rows || []).map(normalizeIncident);
+    const summary = incidents.reduce((acc, inc) => {
+      acc[inc.severity] = (acc[inc.severity] || 0) + 1;
+      return acc;
+    }, {});
+
     return {
       source: 'Montgomery open data (Socrata catalog)',
+      dataset: {
+        id: datasetId,
+        name: dataset.resource?.name,
+        description: dataset.resource?.description,
+      },
+      incidents,
+      total: incidents.length,
+      summary,
+      updatedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    return {
+      source: 'Montgomery open data (Socrata)',
       dataset: null,
       incidents: [],
       total: 0,
-      note: 'No incident dataset discovered at runtime.',
+      summary: {},
+      unavailable: true,
+      error: error.message,
       updatedAt: new Date().toISOString(),
     };
   }
-
-  const datasetId = dataset.resource.id;
-  const rowsUrl = `https://data.montgomeryal.gov/resource/${datasetId}.json`;
-
-  const { data: rows } = await axios.get(rowsUrl, {
-    params: {
-      $limit: 25,
-      $order: ':updated_at DESC',
-    },
-    timeout: 15000,
-  });
-
-  const incidents = (rows || []).map(normalizeIncident);
-  const summary = incidents.reduce((acc, inc) => {
-    acc[inc.severity] = (acc[inc.severity] || 0) + 1;
-    return acc;
-  }, {});
-
-  return {
-    source: 'Montgomery PD open data (Socrata)',
-    dataset: {
-      id: datasetId,
-      name: dataset.resource?.name,
-      description: dataset.resource?.description,
-    },
-    incidents,
-    total: incidents.length,
-    summary,
-    updatedAt: new Date().toISOString(),
-  };
 }
 
 module.exports = {
