@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#fff1f2"/>
+  <rect x="40" y="30" width="1200" height="96" rx="16" fill="#7f1d1d"/>
+  <text x="72" y="74" fill="#ffffff" font-size="34" font-family="Arial">Demo Mode Placeholder</text>
+  <text x="72" y="104" fill="#fecdd3" font-size="20" font-family="Arial">Replace with a real screenshot showing the severe-state banner, elevated score, and shifted factors.</text>
+  <rect x="40" y="160" width="1200" height="500" rx="18" fill="#ffffff" stroke="#fecaca"/>
+  <circle cx="220" cy="360" r="120" fill="#fee2e2" stroke="#ef4444" stroke-width="12"/>
+  <text x="165" y="375" fill="#7f1d1d" font-size="56" font-family="Arial">89</text>
+  <rect x="420" y="220" width="760" height="80" rx="12" fill="#7f1d1d" opacity="0.12"/>
+  <text x="450" y="270" fill="#7f1d1d" font-size="28" font-family="Arial">Critical Conditions banner visible</text>
+  <text x="420" y="360" fill="#334155" font-size="24" font-family="Arial">Capture with:</text>
+  <text x="450" y="405" fill="#334155" font-size="22" font-family="Arial">• score above 75</text>
+  <text x="450" y="440" fill="#334155" font-size="22" font-family="Arial">• severe badge + headline</text>
+  <text x="450" y="475" fill="#334155" font-size="22" font-family="Arial">• top factors visibly elevated</text>
+  <text x="450" y="510" fill="#334155" font-size="22" font-family="Arial">• action brief in view</text>
+</svg>

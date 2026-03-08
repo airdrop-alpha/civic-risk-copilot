@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#eef4fb"/>
+  <rect x="40" y="30" width="1200" height="96" rx="16" fill="#0b3f66"/>
+  <text x="72" y="74" fill="#ffffff" font-size="34" font-family="Arial">Source Reliability / Graceful Degradation Placeholder</text>
+  <text x="72" y="104" fill="#d6e7f5" font-size="20" font-family="Arial">Capture this view with mixed live, stale, or unavailable source states before submission.</text>
+  <rect x="40" y="160" width="720" height="500" rx="16" fill="#ffffff" stroke="#d7e1ea"/>
+  <rect x="800" y="160" width="440" height="500" rx="16" fill="#ffffff" stroke="#d7e1ea"/>
+  <text x="72" y="210" fill="#0f4c81" font-size="28" font-family="Arial">Recommended final shot</text>
+  <text x="72" y="250" fill="#334155" font-size="22" font-family="Arial">• Source Reliability card visible</text>
+  <text x="72" y="290" fill="#334155" font-size="22" font-family="Arial">• At least one live and one stale/unavailable source</text>
+  <text x="72" y="330" fill="#334155" font-size="22" font-family="Arial">• Any app status banner explaining graceful degradation</text>
+  <text x="72" y="370" fill="#334155" font-size="22" font-family="Arial">• Updated timestamp visible</text>
+  <text x="830" y="220" fill="#0f4c81" font-size="28" font-family="Arial">Judge takeaway</text>
+  <text x="830" y="270" fill="#334155" font-size="22" font-family="Arial">The system stays honest and useful</text>
+  <text x="830" y="305" fill="#334155" font-size="22" font-family="Arial">when upstream public APIs are messy.</text>
+</svg>

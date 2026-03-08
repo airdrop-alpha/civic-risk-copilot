@@ -139,6 +139,12 @@ Place final demo screenshots here before submission:
 
 Additional notes live in `docs/screenshots/README.md`.
 
+Current repo status:
+- SVG placeholder comps exist in `docs/screenshots/`
+- Final submission should replace them with real PNG captures
+- Demo flow notes live in `docs/demo-script.md`
+- Final packaging checklist lives in `docs/submission-checklist.md`
+
 ## Setup
 
 ### 1. Install dependencies
@@ -205,6 +211,13 @@ Open `http://localhost:3000`
 - `src/ai/copilot.js` — AI orchestration and fallback answers
 - `public/index.html` — polished dashboard frontend
 - `docs/screenshots/README.md` — screenshot placeholder notes
+
+## Submission Prep
+
+For the final hackathon handoff, use:
+- `docs/demo-script.md` — 2–3 minute narration flow
+- `docs/submission-checklist.md` — final 48-hour packaging checklist
+- `docs/screenshots/README.md` — screenshot capture plan and placeholder inventory
 
 ## Demo Notes for Judges
 
