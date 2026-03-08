@@ -140,10 +140,11 @@ Place final demo screenshots here before submission:
 Additional notes live in `docs/screenshots/README.md`.
 
 Current repo status:
-- SVG placeholder comps exist in `docs/screenshots/`
-- Final submission should replace them with real PNG captures
+- Final PNG captures now exist in `docs/screenshots/`
+- Legacy SVG placeholder comps are still kept for reference only
 - Demo flow notes live in `docs/demo-script.md`
 - Final packaging checklist lives in `docs/submission-checklist.md`
+- Hackathon form copy draft lives in `docs/submission-form.md`
 
 ## Setup
 
@@ -176,6 +177,24 @@ npm start
 ```
 
 Open `http://localhost:3000`
+
+## Quick Smoke Test
+
+After startup, verify the critical paths:
+
+```bash
+curl http://localhost:3000/api/health
+curl http://localhost:3000/api/dashboard
+curl -X POST http://localhost:3000/api/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"What is the biggest risk right now?"}'
+```
+
+Demo mode:
+
+```bash
+curl 'http://localhost:3000/api/dashboard?mode=demo'
+```
 
 ## API Endpoints
 
