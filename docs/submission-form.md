@@ -20,13 +20,13 @@ The app aggregates live public data from weather, official alerts, air quality, 
 We built the full MVP: live multi-source aggregation, weighted civic-risk engine, factor breakdown UI, action brief, source reliability panel, risk trend view, AI copilot chat, server-sent live updates, demo mode, shareable risk summary, and graceful fallback handling for upstream API failures.
 
 ## Repo URL
-Add the public GitHub repository URL here.
+https://github.com/airdrop-alpha/civic-risk-copilot
 
 ## Public demo / deployment URL
-Add the deployed app URL here.
+https://civic-risk-copilot.onrender.com
 
 ## Demo video URL
-Add the uploaded demo video URL here.
+https://github.com/airdrop-alpha/civic-risk-copilot/raw/main/docs/demo-video.mp4
 
 ## Short judging pitch
 Civic Risk Copilot makes public-risk information faster to understand, easier to trust, and more useful to act on when time and clarity matter most.
